@@ -3,6 +3,7 @@
 # Restructure/review include files
 
 # Making imremap.c compatible with new SL inputs
+	# start with only taking in the alpha1 and alpha2 maps from fits files
 
 # document/comment 
 

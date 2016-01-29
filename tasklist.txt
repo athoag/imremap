@@ -1,0 +1,16 @@
+#### Restructure imremap.c to exclude unnecessary junk
+
+# Restructure/review include files
+
+# Making imremap.c compatible with new SL inputs
+
+# document/comment 
+
+# rename variables/functions to be more descriptive 
+
+# Verify image positions are correct with lenstool, e.g.
+
+# Makefile
+	# Making sure we have the right libraries
+
+# Modify/update imremap_source.c to efficiently do the computations

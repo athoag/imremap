@@ -1,3 +1,5 @@
 # magnification (derived from alpha maps or given independently)
 
-# handle an extended source
+# shear info to see shape of images for different source shapes
+
+# extended sources

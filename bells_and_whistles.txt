@@ -1,0 +1,3 @@
+# magnification (derived from alpha maps or given independently)
+
+# handle an extended source

@@ -31,4 +31,4 @@ Outline for the program
 		- find the closest pair of data/model images. Mark as paired, pop off the stack
 		- continue until all data images are exhausted
 		- mark remaining model images as new
-	- chisq evaluation for "best"
+	- chisq evaluation for "best" among images

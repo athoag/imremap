@@ -1,5 +1,9 @@
+
+//BC These should be less general - just what's needed for this one.
 #include "swunitedamr.h"
 #include "swunited_remap.h"
+
+
 
 #define NDIM_N 2 
 #define NIM_R 4
@@ -170,6 +174,8 @@ void newton_remap(double xres[], long *success)
  return;
 }
 
+
+//BC These two are the only ones that are used in remap.c
 
 long remap_source(double ximage[], double flux[]){
 

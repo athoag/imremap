@@ -1,0 +1,34 @@
+Outline for the program
+
+- remap.c (main program file)
+	
+	- read in the input data.  This means
+		- File(s) for alpha1/2
+		- File for the SL images (in SWUnited format)
+		- <optional, add later> magnification map
+		
+	- For the specified image system(s):
+		- calculate the source position for each image in the system
+		- calculate the "best" source position for the full image system
+		- calculate all image positions for the best position
+		- Determine which (if any) of the calculated positions are new.
+		
+- remap_source.c (collection of functions to be used in remap.c)
+
+	Function list:
+	- memory allocation/freeing (might be good to do a general fits- input setup too)
+	- source position from image position
+		- convert RA, Dec to pixels
+		- interpolate alpha between pixel locations (degree=? linear or more?)
+		- beta = theta - alpha
+	- image position from source position (hard!)
+		- get beta for each pixel in the field
+		- define search regions in image plane (places that map close enough to best 
+		source position in src plane).  "Depth first graph traversal" may be a good idea
+		- within each region find the point that lenses back to the best source position
+	- image association (this idea may have issues with parity, FYI. mag may help fix)
+		- check that N_data_img > N_model_img
+		- find the closest pair of data/model images. Mark as paired, pop off the stack
+		- continue until all data images are exhausted
+		- mark remaining model images as new
+	- chisq evaluation for "best"

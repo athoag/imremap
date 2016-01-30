@@ -1,14 +1,15 @@
 #include "swunitedamr.h"
 #include "swunited_remap.h"
 
-static Gaussian gaussian;
+static Gaussian gaussian; //BC Not sure if we need this
 
+//BC We'll want to move these down, likely simplify both
 void free_arrays_gridremap(void){
   free(pgridremap.alpha1grid); 
   free(pgridremap.alpha2grid);
   return;
 
-}
+} 
 
 void assign_arrays_gridremap(void){
   long ngrid;
@@ -39,6 +40,7 @@ void assign_arrays_gridremap(void){
 
 
 int main(int argc, char *argv[]) {
+
   FILE *out, *out2;
   char my_args[5][100];
   char *filename, *filenamein, *filenameim; 
@@ -76,20 +78,24 @@ int main(int argc, char *argv[]) {
   allocate_arrays_grid();
   nztot = 1;
   recon = 0;
-  while (1)
-    {
+
+//BC set up the options
+//BC
+//BC What we actually want (at least initially):
+//BC help, image, <others?>
+
+  while (1){
       static struct option long_options[] =
         {
-          {"help",     no_argument,       0, 'h'},
-	  {"ngrid",    required_argument, 0, 'g'},
-	  {"image",    required_argument, 0, 'i'},
-	  {"sigma",    required_argument, 0, 's'},
-	  {"nztot",    required_argument, 0, 'z'},
-    {"recon",    required_argument, 0, 'r'},
-    {"plotfits",    required_argument, 0, 'f'},
-	  {0, 0, 0, 0}
+    		{"help",     no_argument,       0, 'h'},
+			{"ngrid",    required_argument, 0, 'g'},
+			{"image",    required_argument, 0, 'i'},
+			{"sigma",    required_argument, 0, 's'},
+			{"nztot",    required_argument, 0, 'z'},
+    		{"recon",    required_argument, 0, 'r'},
+    		{"plotfits",    required_argument, 0, 'f'},
+    		{0, 0, 0, 0}
         };
-
 
       cin = getopt_long (argc, argv, "hd:p:i:g:s:z:r",
                        long_options, &option_index);
@@ -97,8 +103,8 @@ int main(int argc, char *argv[]) {
       /* Detect the end of the options. */
       if (cin == -1) break;
 
-      switch (cin)
-        {
+      switch (cin){
+      
         case 0:
           /* If this option set a flag, do nothing else now. */
           if (long_options[option_index].flag != 0)
@@ -121,25 +127,25 @@ int main(int argc, char *argv[]) {
           strcpy(my_args[0], optarg);
           status += 1;
           break;
-	case 'p':
+		case 'p':
           plot = atoi(optarg);
           break;
-	case 'g':
+		case 'g':
           ngrid = atoi(optarg);
           break;
-	case 'z':
+		case 'z':
           nztot = atoi(optarg);
           break;
-	case 'i':
+		case 'i':
           image = atoi(optarg);
           break; 
-	case 's':
+		case 's':
           sigma = atof(optarg);
           break; 
-  case 'r':
+  		case 'r':
           recon = atof(optarg);
           break; 
-  case 'f':
+  		case 'f':
           plotfits = atof(optarg);
           break;          
         case '?':
@@ -163,6 +169,7 @@ int main(int argc, char *argv[]) {
 
   NSTENP = (ORDER+1)*(ORDER+2)/2; 
   
+  //BC These values are hard coded above.  Why do we have these here?
   if (ORDER > 4) error("main", "can't do that order yet");
   if (NPOINT < NSTENP)  error("main", "can't have less points than the number of derivatives we are evaluating");
   if (NPOINT > NMAXP)  error("main", "can't use that many points");

@@ -13,7 +13,7 @@ void free_arrays_gridremap(void){
 
 void assign_arrays_gridremap(void){
   long ngrid; 
-  ngrid = lens_grid.nedge; // AH may need to change based on how we store ngrid variable
+  ngrid = lens_grid.nedge; // AH may need to change based on how we store ngrid variable. 
 
   if ((pgridremap.alpha1grid =
        ((double *)malloc(ngrid* ngrid*sizeof(double)))) == NULL) 
@@ -42,18 +42,18 @@ int main(int argc, char *argv[]) {
 
   /*this is for grid,gridc recalculations*/
   double *x, *y;
-  double fctgrid, k, g1, g2; // AH fctgrid is pixels per arcminute
+  double fctgrid, k, g1, g2; // AH - fctgrid is pixels per arcminute
   int neighbors, npoints[NMAXP]; 
   double xpoints[2*NMAXP], clens[NMAXL*NMAXP];
   double cdfct[2],theta;
 
-  double xx, yy, a1, a2, ys[2], dx,zcosmo, sigma;
+  double xx, yy, a1, a2, ys[2], dx, zcosmo, sigma;
   double *detgrid, *maggrid, lenspropgrid[7], chi2[100], chi2tmp, 
     zbest[100], chi2old, dista[10], disttot, dz, zcur, zini;
   long plot, nim, nimagenew, nimageold, image, nz, nztot, recon;
   int option_index = 0, status, intrp;
-  int cin, nave = 4, is;
-  double *gautable;
+  int cin, nave = 4, is; // AH - 'is' is used as a multiple image system number
+  // double *gautable; AH - no longer using gaussian smoothing 
 
   par_slgalaxies *slgalaxymatch; 
   struct par_fits fitsheader, fitsheaderin;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
   // sigma = 1.0; AH don't need to smooth the input alpha maps
   status = 0;
   plenses.nlenses=1;
-  image = -1;
+  image = -1; // AH - RENAME!! This is really an index for the system number so should be more descriptive ('nsystem', perhaps)
   // ngrid = 512; // AH Can figure out grid size from header, don't need as option 
   intrp = 1;
   allocate_arrays_grid();
@@ -158,13 +158,21 @@ int main(int argc, char *argv[]) {
   NSTENP = (ORDER+1)*(ORDER+2)/2; 
   
   //BC These values are hard coded above.  Why do we have these here?
+  
+  /* 
+  AH - I think they are there to safeguard against someone changing the hardcodes and then compiling (successfully).
+  Kind of like Assert() in python.
+  Might not be a bad idea to keep them. If not in this form, then 
+  maybe by commenting above where the values are originally hardcoded above 
+  */
+
   if (ORDER > 4) error("main", "can't do that order yet");
   if (NPOINT < NSTENP)  error("main", "can't have less points than the number of derivatives we are evaluating");
   if (NPOINT > NMAXP)  error("main", "can't use that many points");
   if (NCOEF > NMAXL)  error("main", "can't use that many coefficients");
   
   /*this just reserves memory*/
-  assign_data(0); // AH is this still necessary? 
+  assign_data(0); // AH - calls external function in assign_data.c - let's get rid of this dependency by keeping things internal.
 
   /************************************************************************/
   /************************************************************************/
@@ -199,13 +207,13 @@ int main(int argc, char *argv[]) {
   // lens_grid.nedge = ngrid; AH determine ngrid in scrape_header function defined at bottom of file
   assign_arrays_gridremap(); 
   
-  /* The following assigns both alpha values to the lens_grid array.
+  /* AH - The following while loop assigns both alpha values to the lens_grid, which is declared in swunitedamr.h .
   As of now, the alpha arrays are stored in pgridremap.alpha1grid and pgridremap.alpha2grid */
   // message("Grid: %.3f %.3f %.3f", fctgrid, LX, LY); // AH fctgrid: pixels/arcmin, LX and LY are field size in arcminutes 
 
-  is = 0; // AH - The current system number - used to keep track of which system we are at in the strong lensing file
+  is = 0; // AH - RENAME!! The current system number - used to keep track of which system we are at in the strong lensing file. 
 
-  if (image != -1) is = image; // AH assigns
+  if (image != -1) is = image; // AH - image is the system number we want to remap - so this us to start right on the specified image number
   while (is < pimages.nsystems && image != 100){  // verrry long loop
     if  (pimages.nrecarray[is] == 1){ // very long loop
       pimages.ncur = is;

@@ -12,18 +12,8 @@ void free_arrays_gridremap(void){
 } 
 
 void assign_arrays_gridremap(void){
-  long ngrid;
-  ngrid = lens_grid.nedge;
-
-  if ((pgridremap.alpha1comp =
-       ((double *)malloc(ngrid* ngrid*sizeof(double)))) == NULL) 
-    error("malloc", "out of memory alpha1comp");
-  cleanDoubleVar( ngrid* ngrid, pgridremap.alpha1comp);
-
-  if ((pgridremap.alpha2comp =
-       ((double *)malloc(ngrid* ngrid*sizeof(double)))) == NULL) 
-    error("malloc", "out of memory alpha2comp");
-  cleanDoubleVar( ngrid* ngrid, pgridremap.alpha2comp);
+  long ngrid; 
+  ngrid = lens_grid.nedge; // AH may need to change based on how we store ngrid variable
 
   if ((pgridremap.alpha1grid =
        ((double *)malloc(ngrid* ngrid*sizeof(double)))) == NULL) 
@@ -52,7 +42,7 @@ int main(int argc, char *argv[]) {
 
   /*this is for grid,gridc recalculations*/
   double *x, *y;
-  double fctgrid, k, g1, g2;
+  double fctgrid, k, g1, g2; // AH fctgrid is pixels per arcminute
   int neighbors, npoints[NMAXP]; 
   double xpoints[2*NMAXP], clens[NMAXL*NMAXP];
   double cdfct[2],theta;
@@ -69,15 +59,15 @@ int main(int argc, char *argv[]) {
   struct par_fits fitsheader, fitsheaderin;
  
   ORDER = 4; NCOEF = 9; NPOINT = 30;
-  sigma = 1.0;
+  // sigma = 1.0; AH don't need to smooth the input alpha maps
   status = 0;
   plenses.nlenses=1;
   image = -1;
-  ngrid = 512;
+  // ngrid = 512; // AH Can figure out grid size from header, don't need as option 
   intrp = 1;
   allocate_arrays_grid();
-  nztot = 1;
-  recon = 0;
+  // nztot = 1; AH I have never used this in remap so far, so not necessary in v1
+  recon = 1;
 
 //BC set up the options
 //BC
@@ -87,14 +77,14 @@ int main(int argc, char *argv[]) {
   while (1){
       static struct option long_options[] =
         {
-    		{"help",     no_argument,       0, 'h'},
-			{"ngrid",    required_argument, 0, 'g'},
-			{"image",    required_argument, 0, 'i'},
-			{"sigma",    required_argument, 0, 's'},
-			{"nztot",    required_argument, 0, 'z'},
-    		{"recon",    required_argument, 0, 'r'},
-    		{"plotfits",    required_argument, 0, 'f'},
-    		{0, 0, 0, 0}
+    		{"help",     no_argument,       0, 'h'}, // AH keep
+			// {"ngrid",    required_argument, 0, 'g'}, // AH Can figure out grid size from header, don't need as option 
+			{"image",    required_argument, 0, 'i'}, //
+			// {"sigma",    required_argument, 0, 's'}, // AH don't need to smooth the input alpha maps
+			// {"nztot",    required_argument, 0, 'z'}, // AH I have never used this in remap so far, so not necessary in v1
+    		{"recon",    required_argument, 1, 'r'}, // AH keep but rename - recon = 1 means predict the counter-images
+    		// {"plotfits",    required_argument, 0, 'f'}, // AH don't need to plot fits files in v1
+    		{0, 0, 0, 0} // AH what does this line do? 
         };
 
       cin = getopt_long (argc, argv, "hd:p:i:g:s:z:r",
@@ -117,10 +107,8 @@ int main(int argc, char *argv[]) {
 
          case 'h':
            message("Usage sheet_minuit\n\
---ngrid    number of gridpoints (1024) \n\
---image    image to rec (-1 = all) \n\
---sigma    smoothing for maps (pix, 0.01)\n\
---recon    do the image mapping (0)" );
+--image    which image systems to remap (-1 = all) \n\
+--recon    do the image mapping (1)" );
            exit (EXIT_SUCCESS);
            break;
         case 'd':
@@ -176,11 +164,12 @@ int main(int argc, char *argv[]) {
   if (NCOEF > NMAXL)  error("main", "can't use that many coefficients");
   
   /*this just reserves memory*/
-  assign_data(0);
+  assign_data(0); // AH is this still necessary? 
 
   /************************************************************************/
   /************************************************************************/
-  /*reading in weak lensing data*/
+
+  /* AH Allocate memory for variables used in i/o (filename*) and the computation (x,y) */
   if ((filename = ((char *)malloc(200*sizeof(char)))) == NULL)
     error("malloc","out of memory filename");
   
@@ -197,132 +186,26 @@ int main(int argc, char *argv[]) {
   if ((y = ((double *)malloc(ngrid*ngrid*sizeof(double)))) == NULL)
     error("malloc", "out of memory filename");
   cleanDoubleVar(ngrid*ngrid,y);
-  
-  if ((detgrid = ((double *)malloc(ngrid*ngrid*sizeof(double)))) == NULL)
-    error("malloc", "out of memory filename");
-  cleanDoubleVar(ngrid*ngrid,detgrid);
-  
-  if ((maggrid = ((double *)malloc(ngrid*ngrid*sizeof(double)))) == NULL)
-    error("malloc", "out of memory filename");
-  cleanDoubleVar(ngrid*ngrid,maggrid);
-  
-  if ((slgalaxymatch = ((par_slgalaxies *)malloc(NGALSM*(sizeof(par_slgalaxies))))) == NULL)
-   error("malloc", "out of memory galaxy");
-
-
-  sprintf(filename, "%s", my_args[0]);
-  readin_all(filename , 0, &(fitsheader));
-
-  pimages.ncur = image;
-
-  lens_grid.nedge = ngrid;
-  assign_arrays_gridremap();
-  
-  /**********************************************************************/
-  /*Now remaping all onto ngrid*/  
-  /**********************************************************************/
-  /***************************************************************************/
-  /***************************************************************************/
-  /*now initialize index, so we can search later*/
-  elementsprop.index = NULL;
-  printf("Building index. with %ld points..\n", elementsprop.n);
-
-  //  int mmm;
-  //  for (mmm=0;mmm<elementsprop.n;mmm++) printf("%d, %g, %g, %d \n",
-  //					      elementsprop.n,elementsprop.x[mmm],elementsprop.y[mmm],elementsprop.data[mmm]);
-  
-  elementsprop.index = searchgrid_new_index(elementsprop.n, elementsprop.x, elementsprop.y, elementsprop.data);
-  printf("Done\n");
-
-  /**************************************************************************/
-  /*now grids*/
-  
- /**************************************************************************/
-  // printf("Before grids, dista[0] = %f", dista[0]);
-  SIGMA = sigma;
-  message ("Initializing gaussian for %.3f", SIGMA);
-  inizializeGaussian();
-  gautable = (double *)malloc(GAUTABLESIZE*GAUTABLESIZE*sizeof(double)); 
-  lookupGaussian(0.0, 0.0, gautable);
-  fctgrid = ((double) ngrid-1)/(LX); // pixels per arcmin
-  dx = LX / ((double) ngrid-1);  //
-  // printf("The value of LX is %f \n",LX);
-  // printf("The value of dx should be 9/1024, and it is actually %f \n",dx);
-  message("Using %d points and %d order", NPOINT, ORDER);
-  // printf("After gaussian, dista[0] = %f \n", dista[0]);
-  for (i=0;i<ngrid; i++){
-    for (j=0;j<ngrid; j++){
-      x[i*ngrid+j] = (double) i;
-      y[i*ngrid+j] = (double) j;
-      /*the coordinates are 0-LX*/
-      xx = (double) i * dx;
-      yy = (double) j * dx;
-      // printf("Before searchgrid, dista[0] = %f \n", dista[0]);
-      neighbors = searchgrid_find_neighbors(elementsprop.index, xx, yy, NPOINT, npoints);
-      // printf("After searchgrid, dista[0] = %f, disttot = %f \n", dista[0],disttot);
-         /*here we go from 0, because the point itself is included*/
-      pgridremap.psigrid[i*ngrid+j] = elements[npoints[0]].psi; // Added by AH on 5/26/2015
-      if (intrp == 0){
-	for (np = 0; np < NPOINT; np++){
-	  xpoints[np*2+0]= elements[npoints[np]].x;
-	  xpoints[np*2+1]= elements[npoints[np]].y;
-	}
-  coefficientsamr(xx, yy, xpoints, clens, 1);
-
-	/*clens is 0 gamma1 1 gamma2 2 kappa 3 alpha1 4 alpha2*/
-	for (l=0;l<5;l++){
-	  lenspropgrid[l] = 0.0;
-	  for (np = 0; np < NPOINT; np++)
-	    lenspropgrid[l] += (clens[l*NMAXP + np]*elements[npoints[np]].psi);
-	}
-      }
-      else {
-	disttot = 0.0;
-	// printf("DISTA[0] = %f \n", dista[0]);
-	if (dista[0] == 0.0){
-	  for (np=1; np < nave; np++) dista[np] = 0.0;
-	  dista[0] = 1.0;
-	  disttot = 1.0;
-	}
-	else{
-	  for (np=0; np < nave; np++){
-	    dista[np] = 1.0/(sqr(xx - elements[npoints[np]].x) + sqr(yy- elements[npoints[np]].y));
-	    disttot += dista[np];
-	  }
-	}
-    	
-	for (np=0; np < 5; np++) lenspropgrid[np] = 0.0;
-	for (np=0; np < nave; np++){
-
-	  lenspropgrid[2] +=  (dista[np]/disttot)*elements[npoints[np]].kappa;
-	  lenspropgrid[0] +=  (dista[np]/disttot)*elements[npoints[np]].gamma1;
-	  lenspropgrid[1] +=  (dista[np]/disttot)*elements[npoints[np]].gamma2;
-	  lenspropgrid[3] +=  (dista[np]/disttot)*elements[npoints[np]].alpha1;
-	  lenspropgrid[4] +=  (dista[np]/disttot)*elements[npoints[np]].alpha2;
-	}
-      }
-      /* addToGrid(pgridremap.kappacomp, gautable, i,j, lenspropgrid[2], ngrid, ngrid); */
-      /* addToGrid(pgridremap.gamma1comp, gautable, i,j, lenspropgrid[0], ngrid, ngrid); */
-      /* addToGrid(pgridremap.gamma2comp, gautable, i,j, lenspropgrid[1], ngrid, ngrid); */
-      /* addToGrid(pgridremap.alpha1comp, gautable, i,j,  fctgrid*lenspropgrid[3] , ngrid, ngrid); */
-      /* addToGrid(pgridremap.alpha2comp, gautable, i,j,  fctgrid*lenspropgrid[4] , ngrid, ngrid); */
-      pgridremap.kappacomp[i*ngrid+j] = lenspropgrid[2];
-      pgridremap.gamma1comp[i*ngrid+j] = lenspropgrid[0];
-      pgridremap.gamma2comp[i*ngrid+j] = lenspropgrid[1];
-      pgridremap.alpha1comp[i*ngrid+j] = fctgrid*lenspropgrid[3];
-      pgridremap.alpha2comp[i*ngrid+j] = fctgrid*lenspropgrid[4];
     
-    }   // end i loop
-    progress(i, 100," grid points");
-  }   // end j loop
- /**********************************************************************/
- /**********************************************************************/
+  if ((slgalaxymatch = ((par_slgalaxies *)malloc(NGALSM*(sizeof(par_slgalaxies))))) == NULL)
+   error("malloc", "out of memory galaxy"); // AH not clear to me exactly what this array means.
+
+
+  // sprintf(filename, "%s", my_args[0]); // AH no longer necessary to read in swunited-formatted parameter file - see readin_stronglensing function at bottom of file
+  // readin_all(filename , 0, &(fitsheader)); // readin_all is an external function that we don't want to rely on
+
+  // pimages.ncur = image; AH reformat how we want to deal with number of images in system to make more readable
+
+  // lens_grid.nedge = ngrid; AH determine ngrid in scrape_header function defined at bottom of file
+  assign_arrays_gridremap(); 
   
-  
-  message("Grid: %.3f %.3f %.3f", fctgrid, LX, LY);
-  is = 0; 
-  // printf("pimages.nsystems=%ld \n",pimages.nsystems);
-  if (image != -1) is = image;
+  /* The following assigns both alpha values to the lens_grid array.
+  As of now, the alpha arrays are stored in pgridremap.alpha1grid and pgridremap.alpha2grid */
+  // message("Grid: %.3f %.3f %.3f", fctgrid, LX, LY); // AH fctgrid: pixels/arcmin, LX and LY are field size in arcminutes 
+
+  is = 0; // AH - The current system number - used to keep track of which system we are at in the strong lensing file
+
+  if (image != -1) is = image; // AH assigns
   while (is < pimages.nsystems && image != 100){  // verrry long loop
     if  (pimages.nrecarray[is] == 1){ // very long loop
       pimages.ncur = is;
@@ -335,34 +218,19 @@ int main(int argc, char *argv[]) {
 	zini = pimages.zs[pimages.ncur] - pimages.deltazs[is];
 	if (zini < (plenses.z0[0] + 0.1)) zini = plenses.z0[0] + 0.1; 
 	zcur = zini +nz*dz; 
-  // printf("zcur = %f \n",zcur);
-	if (nztot == 1) zcur = pimages.zs[pimages.ncur];
-	// printf("zcur = %f \n",zcur);
 
 	zcosmo = redshift(zcur, plenses.z0[0]);
   
-  for (i=0;i<ngrid; i++){
-	  for (j=0;j<ngrid; j++){
-	    pgridremap.kappagrid[i*ngrid+j] =  zcosmo*pgridremap.kappacomp[i*ngrid+j];
-	    pgridremap.gamma1grid[i*ngrid+j] =  zcosmo*pgridremap.gamma1comp[i*ngrid+j];
-	    pgridremap.gamma2grid[i*ngrid+j] =  zcosmo*pgridremap.gamma2comp[i*ngrid+j];
-	    pgridremap.alpha1grid[i*ngrid+j] =  zcosmo*pgridremap.alpha1comp[i*ngrid+j];
-	    pgridremap.alpha2grid[i*ngrid+j] =  zcosmo*pgridremap.alpha2comp[i*ngrid+j];
-	    detgrid[i*ngrid+j] = sqr(1.0 - pgridremap.kappagrid[i*ngrid+j]) - (sqr(pgridremap.gamma1grid[i*ngrid+j]) + sqr(pgridremap.gamma2grid[i*ngrid+j]));
-	    maggrid[i*ngrid+j] = 1.0/detgrid[i*ngrid+j];
-      }
-    }
-    lens_grid.xl = x;
-    lens_grid.yl = y;
-    // message("lens_grid.xl = %lf, lens_grid.yl = %lf\n", *x, *y);
-    lens_grid.def1l = pgridremap.alpha1grid; 
-    lens_grid.def2l = pgridremap.alpha2grid;
-    lens_grid.kappa = pgridremap.kappagrid;
-    lens_grid.gamma1 = pgridremap.gamma1grid;
-    lens_grid.gamma2 = pgridremap.gamma2grid;
-    lens_grid.gamma1e = 0.0;
-    lens_grid.gamma2e = 0.0;
-    
+  lens_grid.xl = x;
+  lens_grid.yl = y;
+  lens_grid.def1l = pgridremap.alpha1grid; 
+  lens_grid.def2l = pgridremap.alpha2grid;
+  lens_grid.kappa = pgridremap.kappagrid;
+  lens_grid.gamma1 = pgridremap.gamma1grid;
+  lens_grid.gamma2 = pgridremap.gamma2grid;
+  lens_grid.gamma1e = 0.0;
+  lens_grid.gamma2e = 0.0;
+  
     message ("Multiple images: %ld with %ld -> zs= %.3f  zd= %.3f  Z(z) %.3f",pimages.ncur,pimages.nimages[pimages.ncur], pimages.zs[pimages.ncur], plenses.z0[0], zcosmo);
     
     if (recon == 1) {
@@ -776,6 +644,28 @@ int main(int argc, char *argv[]) {
 //////////////////////////////////////////////
 //////////////////////////////////////////////
 //////////////////////////////////////////////
+
+
+void readin_stronglensing(double *theta, char *imagenames char *slfilename){
+  /* 
+    read in strong lensing catalog named slfilename 
+    and assign the image location theta
+    and multiple image ids corresponding the the locations
+
+  */
+
+  }
+
+void scrape_header(char *alpha_fitsfile) {
+  /* 
+    Get values from alpha fits file header such as 
+    the grid size (ngrid) and the pixel scale (pixscale_arcsec)
+  */
+
+    double ngrid; // size of grid in pixels scraped directly from header
+    double pixscale_deg, pixscale_arcmin; // pixel scale in degrees is the CD2_2 value in the fits header, but we use relative arcminutes elsewhere
+    pixscale_arcmin = pixscale_deg*60;
+}
 
 void src_from_img(double *beta, double *theta, 
 				  double *alpha_grid, char *alpha_fitsfile){

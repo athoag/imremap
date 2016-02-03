@@ -15,5 +15,5 @@
 	# Making sure we have the right libraries/include files, etc.
 
 # Modify/update imremap_source.c to efficiently do the computations
-	### Write a new function in imremap_source.c to use a variable source plane position as reference point
+	### Write a new function (maybe for v1.1 once v1.0 is done...) in imremap_source.c to use a variable source plane position as reference point
 	### Currently, lenseq_f_remap() uses the average soure plane position as a reference point

@@ -17,7 +17,7 @@ int lenseq_f_remap (gsl_vector * xx, void *par, gsl_vector * f)
   double *def1, *def2, *x, *y, fctgrid, dx;
   long j, nedge;
 
-  /* The average position in the source plane */
+  /* The average position in the source plane in pixels */
   ysource[0] = lens_grid.y01; 
   ysource[1] = lens_grid.y02;
 
@@ -27,8 +27,8 @@ int lenseq_f_remap (gsl_vector * xx, void *par, gsl_vector * f)
 
   x = lens_grid.xl;
   y = lens_grid.yl;
-  def1= lens_grid.def1l;
-  def2= lens_grid.def2l;
+  def1= lens_grid.def1l; // alpha1 map in pixels
+  def2= lens_grid.def2l; // alpha2 map in pixels
   
  
   nedge = lens_grid.nedge;
@@ -47,11 +47,12 @@ int lenseq_f_remap (gsl_vector * xx, void *par, gsl_vector * f)
        return GSL_ERANGE;
   }
   else{
-    def1i = interp(def1, x1, x2, nedge, nedge, LX, LX); 
-    def2i = interp(def2, x1, x2, nedge, nedge, LX, LX);	    
+    /* Get the value of the deflection at the image position on the */
+    def1i = interp(def1, x1, x2, nedge, nedge, LX, LX);  
+    def2i = interp(def2, x1, x2, nedge, nedge, LX, LX);
   
-    y1[0]=(1.0-gammaext[0]) * x1*fctgrid - gammaext[1] * x2*fctgrid - def1i;
-    y1[1]=(1.0+gammaext[0]) * x2*fctgrid - gammaext[1] * x1*fctgrid - def2i;   
+    y1[0]=(1.0-gammaext[0]) * x1*fctgrid - gammaext[1] * x2*fctgrid - def1i; // pixels
+    y1[1]=(1.0+gammaext[0]) * x2*fctgrid - gammaext[1] * x1*fctgrid - def2i; // pixels
     
     for (j=0;j<2;j++) zero[j] = y1[j] - ysource[j];
     
@@ -176,8 +177,9 @@ void newton_remap(double xres[], long *success)
 
 
 //BC These two are the only ones that are used in remap.c
+// AH - Yes, but all other functions are called by these two so we need to keep them.
 
-long remap_source(double ximage[], double flux[]){
+long imremap_source(double ximage[], double flux[]){
 
   double xmod[2], lens[3], el, dx;
   double flux1, delta;
@@ -186,12 +188,12 @@ long remap_source(double ximage[], double flux[]){
 
   ran = gsl_rng_alloc(gsl_rng_ranlxs0);
   gsl_rng_set(ran, 1000);
-  delta = 0.2;
-  imax = 10000;
-  nimage = 0; nimmax = 30;
-  el =  (double) lens_grid.nedge;
-  dx = LX/(el - 1.0); 
-  nimage = 0;
+  delta = 0.2; // AH - how far from the edge in arcminutes you must be for an acceptable solution
+  imax = 10000; // AH - number of random points to put down in the lens plane that are then solved with newton_remap
+  nimage = 0; nimmax = 30; 
+  el =  (double) lens_grid.nedge; // number of pixels on a side of the alpha grid 
+  dx = LX/(el - 1.0); // AH - arcminutes per pixel (why -1.0?)
+  nimage = 0; // AH - initialize counter that will keep track of how many images have been found
   for (i=0;i<imax;i++){
     xmod[0] = LX*gsl_rng_uniform(ran); // image location x in arcminutes 
     xmod[1] = LX*gsl_rng_uniform(ran); // image location y in arcminutes
@@ -236,8 +238,7 @@ long remap_source(double ximage[], double flux[]){
   
 }
 
-
-long remap_images(double ximage[], double flux[]){
+long imremap_images(double ximage[], double flux[]){
 
   double xmod[2], lens[3], el, dx;
   double flux1, delta;
@@ -247,12 +248,23 @@ long remap_images(double ximage[], double flux[]){
   ran = gsl_rng_alloc(gsl_rng_ranlxs0);
   gsl_rng_set(ran, 1000);
 
-  delta = 0.2;
-  imax = 10000;
+  delta = 0.2; // AH - how far from the edge in arcminutes you must be for an acceptable solution
+  imax = 10000; // AH - number of random points to put down in the lens plane that are then solved with newton_remap
   nimage = 0; nimmax = 30;
-  el =  (double) lens_grid.nedge;
-  dx = LX/(el - 1.0); 
-  nimage = 0;
+  el =  (double) lens_grid.nedge; // number of pixels on a side of the alpha grid 
+  dx = LX/(el - 1.0); // AH - arcminutes per pixel (why -1.0?)
+  nimage = 0; // AH - initialize counter that will keep track of how many images have been found
+  /* AH - 
+  Now loop through the mulitple images in the current system
+  and use the actual image position to initialize the 
+  solver.
+  This is different from imremap_source() because it uses a 
+  random position in the field to initialize the solver. 
+  The average source plane position is still used as the
+  reference point for determining the fit of the solver. 
+  That is currently hardcoded in lenseq_f_remap. 
+  We will want to change this to be an option.
+  */
   for (nim=0;nim<pimages.nimages[pimages.ncur];nim++){
     xmod[0] =  slgalaxy[(pimages.ncur*NIM + nim)].ximage - ll[0];
     xmod[1] =  slgalaxy[(pimages.ncur*NIM + nim)].yimage - ll[2];

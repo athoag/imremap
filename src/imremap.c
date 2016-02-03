@@ -13,7 +13,7 @@ void free_arrays_gridremap(void){
 
 void assign_arrays_gridremap(void){
   long ngrid; 
-  ngrid = lens_grid.nedge; // AH may need to change based on how we store ngrid variable. 
+  ngrid = lens_grid.nedge; // AH - may need to change based on how we store ngrid variable. 
 
   if ((pgridremap.alpha1grid =
        ((double *)malloc(ngrid* ngrid*sizeof(double)))) == NULL) 
@@ -30,15 +30,15 @@ void assign_arrays_gridremap(void){
 
 
 int main(int argc, char *argv[]) {
-
+  // AH - figure out which of these variables we won't
   FILE *out, *out2;
   char my_args[5][100];
   char *filename, *filenamein, *filenameim; 
   long i, j;
   /*kappa on a grid to compare with stuff*/
-  double ximage[100], flux[50]; // These are the arrays that get filled by the remapped image coords and fluxes, respectively
+  double ximage[100], flux[50]; // These are the arrays that get filled by the remapped image coords (in what coord system??) and fluxes, respectively
   double ximageold[100], fluxold[50];
-  long ngrid, l, np;
+  long ngrid, l, np; 
 
   /*this is for grid,gridc recalculations*/
   double *x, *y;
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   double xpoints[2*NMAXP], clens[NMAXL*NMAXP];
   double cdfct[2],theta;
 
-  double xx, yy, a1, a2, ys[2], dx, zcosmo, sigma;
+  double xx, yy, a1, a2, ys[2], dx, zcosmo, sigma; // AH - xx, yy are to be assigned to positions of multiple images in relative arcminutes from left,bottom of field. 
   double *detgrid, *maggrid, lenspropgrid[7], chi2[100], chi2tmp, 
     zbest[100], chi2old, dista[10], disttot, dz, zcur, zini;
   long plot, nim, nimagenew, nimageold, image, nz, nztot, recon;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
 			{"image",    required_argument, 0, 'i'}, //
 			// {"sigma",    required_argument, 0, 's'}, // AH don't need to smooth the input alpha maps
 			// {"nztot",    required_argument, 0, 'z'}, // AH I have never used this in remap so far, so not necessary in v1
-    		{"recon",    required_argument, 1, 'r'}, // AH keep but rename - recon = 1 means predict the counter-images
+    		{"recon",    required_argument, 1, 'r'}, // AH keep but rename - recon = 1 means predict the counter-images. Maybe hardcode to 1 instead of keep as option 
     		// {"plotfits",    required_argument, 0, 'f'}, // AH don't need to plot fits files in v1
     		{0, 0, 0, 0} // AH what does this line do? 
         };
@@ -214,39 +214,44 @@ int main(int argc, char *argv[]) {
   is = 0; // AH - RENAME!! The current system number - used to keep track of which system we are at in the strong lensing file. 
 
   if (image != -1) is = image; // AH - image is the system number we want to remap - so this us to start right on the specified image number
-  while (is < pimages.nsystems && image != 100){  // verrry long loop
-    if  (pimages.nrecarray[is] == 1){ // very long loop
+  while (is < pimages.nsystems && image != 100){  // AH - verrry long loop through all multiple image systems
+    if  (pimages.nrecarray[is] == 1){ // very long loop 
       pimages.ncur = is;
       
-      dz = (pimages.deltazs[is])/(0.5*nztot);
+      dz = (pimages.deltazs[is])/(0.5*nztot); // AH - not sure what purpose this line serves
       // printf("deltaz[is] = %f",pimages.deltazs[is]);
       // printf("nztot = %ld", nztot);
-      chi2old=1E8;
-      for (nz = 0; nz < nztot; nz++){   // very long loop
+      chi2old=1E8; // AH - a large reference value to compare to later
+      for (nz = 0; nz < nztot; nz++){   // AH - very long loop, not sure what this is for
 	zini = pimages.zs[pimages.ncur] - pimages.deltazs[is];
 	if (zini < (plenses.z0[0] + 0.1)) zini = plenses.z0[0] + 0.1; 
 	zcur = zini +nz*dz; 
 
-	zcosmo = redshift(zcur, plenses.z0[0]);
-  
-  lens_grid.xl = x;
-  lens_grid.yl = y;
-  lens_grid.def1l = pgridremap.alpha1grid; 
-  lens_grid.def2l = pgridremap.alpha2grid;
-  lens_grid.kappa = pgridremap.kappagrid;
-  lens_grid.gamma1 = pgridremap.gamma1grid;
-  lens_grid.gamma2 = pgridremap.gamma2grid;
-  lens_grid.gamma1e = 0.0;
-  lens_grid.gamma2e = 0.0;
+	zcosmo = redshift(zcur, plenses.z0[0]); // AH - The factor you multiply z=inf maps by to get the deflection maps at z_source (zcur, currently)
+  /* AH - Fill lens_grid structure with positions and deflections */
+  lens_grid.xl = x; // Pixels on the grid that was read in 
+  lens_grid.yl = y; // Pixels on the grid that was read in 
+  lens_grid.def1l = pgridremap.alpha1grid; // AH - pixels on the input grid that was read in
+  lens_grid.def2l = pgridremap.alpha2grid; // AH - pixels on the input grid that was read in
+  // lens_grid.kappa = pgridremap.kappagrid; // AH - not necessary for imremap v1
+  // lens_grid.gamma1 = pgridremap.gamma1grid; // AH - not necessary for imremap v1
+  // lens_grid.gamma2 = pgridremap.gamma2grid; // AH - not necessary for imremap v1
+  // lens_grid.gamma1e = 0.0; // AH - not necessary for imremap v1
+  // lens_grid.gamma2e = 0.0; // AH - not necessary for imremap v1
   
     message ("Multiple images: %ld with %ld -> zs= %.3f  zd= %.3f  Z(z) %.3f",pimages.ncur,pimages.nimages[pimages.ncur], pimages.zs[pimages.ncur], plenses.z0[0], zcosmo);
     
-    if (recon == 1) {
+    /* AH - Now map images back to source plane and find counter-images */
+
+    if (recon == 1) { 
 
     message ("DOING THE REMAPPING \n");
     ys[0] = ys[1] = 0.0;
 
-    /*take the image position and project back to the source plane*/
+    /*
+     AH - loop through all images in the current system and map each back to the source plane.
+          The ys array holds the average source plane position, which is currently used in imremap_source.c
+    */
     for (nim=0;nim<pimages.nimages[pimages.ncur];nim++){
       xx =  slgalaxy[(pimages.ncur*NIM + nim)].ximage - ll[0]; // in arcmin from left edge
       yy =  slgalaxy[(pimages.ncur*NIM + nim)].yimage - ll[2]; // in arcmin from bottom edge
@@ -255,9 +260,9 @@ int main(int argc, char *argv[]) {
       /*in remap source however we have pixels*/
       a1 = interp(pgridremap.alpha1grid, xx, yy, ngrid, ngrid, LX, LY); // in pixels
       a2 = interp(pgridremap.alpha2grid, xx, yy, ngrid, ngrid, LX, LY); // in pixels
-      k = interp(pgridremap.kappagrid, xx, yy, ngrid, ngrid, LX, LY);   // in pixels
-      g1 = interp(pgridremap.gamma1grid, xx, yy, ngrid, ngrid, LX, LY); // in pixels
-      g2 = interp(pgridremap.gamma2grid, xx, yy, ngrid, ngrid, LX, LY); // in pixels
+      // k = interp(pgridremap.kappagrid, xx, yy, ngrid, ngrid, LX, LY);   // in pixels
+      // g1 = interp(pgridremap.gamma1grid, xx, yy, ngrid, ngrid, LX, LY); // in pixels
+      // g2 = interp(pgridremap.gamma2grid, xx, yy, ngrid, ngrid, LX, LY); // in pixels
       ys[0] += (xx)*fctgrid - a1; /* source plane x coordinate in pixels -- Added comment AH 10/29/2015 */
       ys[1] += (yy)*fctgrid - a2; /* source plane y coordinate in pixels -- Added comment AH 10/29/2015 */
       message("I %ld x (%.3f,%.3f) a (%.3f,%.3f) ys (%.3f,%.3f) F %.3f",nim,xx,yy, a1/fctgrid, a2/fctgrid, (xx*fctgrid - a1)/fctgrid, (yy*fctgrid - a2)/fctgrid, 1.0 / (sqr(1- k) - (sqr(g1) + sqr(g2))));
@@ -270,47 +275,53 @@ int main(int argc, char *argv[]) {
     lens_grid.y02 = ys[1];
     
     message("Using %ld multiple images with source at %.3f %.3f z:%.3f",pimages.nimages[pimages.ncur], ys[0]/fctgrid, ys[1]/fctgrid,  zcosmo);
+    
+    /* AH - The following for loop is only prints out information. Keeping it to help debug */
     for (nim=0;nim<pimages.nimages[pimages.ncur];nim++){
-      
-      xx =  slgalaxy[(pimages.ncur*NIM + nim)].ximage - ll[0];
-      yy =  slgalaxy[(pimages.ncur*NIM + nim)].yimage - ll[2];
+      /* AH - Following two lines are identical to the two in the above for loop */
+      xx =  slgalaxy[(pimages.ncur*NIM + nim)].ximage - ll[0]; // in arcmin from left edge
+      yy =  slgalaxy[(pimages.ncur*NIM + nim)].yimage - ll[2]; // in arcmin from bottom edge
       
       message("I %ld at (%.3f,%.3f)",nim,xx,yy);
       //      message("Calculated magnification: mu=%g",mu);
 
     }
 
-    // message ("ximage[0] before = %f ", ximage[0]);
-    // message ("flux[0] before = %f ", flux[0]);
-    nimagenew = remap_source(ximage, flux);
-    // message ("ximage[0] = %.2f ximage[3] = %.2f ", ximage[0],ximage[20]);
-    // message ("flux[0] = %f ", flux[0]);
+    /* AH -
+    imremap_source currently finds image positions that map back
+    to the average source plane position and stores their coordinates and fluxes 
+    in ximage and flux, respectively. nimagenew is assigned as the total number
+    of images that are found during this search.
+    */
+    nimagenew = imremap_source(ximage, flux);
     
     message("Have %ld NEW images",nimagenew-pimages.nimages[pimages.ncur]);
-    for (i=0;i<nimagenew;i++){
-      xx = ximage[i*2+0];
-      yy = ximage[i*2+1];
-      a1 = interp(pgridremap.alpha1grid, xx, yy, ngrid, ngrid, LX, LX);
-      a2 = interp(pgridremap.alpha2grid, xx, yy, ngrid, ngrid, LX, LX);   
-      k = interp(pgridremap.kappagrid, xx, yy, ngrid, ngrid, LX, LX);
-      g1 = interp(pgridremap.gamma1grid, xx, yy, ngrid, ngrid, LX, LX);
-      g2 = interp(pgridremap.gamma2grid, xx, yy, ngrid, ngrid, LX, LX); 
+    
+    /* AH - The following for loop only prints out information. Commenting it out for imremap */
+    // for (i=0;i<nimagenew;i++){
+    //   xx = ximage[i*2+0]; // AH - x position of multiple image in relative arcminutes
+    //   yy = ximage[i*2+1]; // AH - y position of multiple image in relative arcminutes
+    //   a1 = interp(pgridremap.alpha1grid, xx, yy, ngrid, ngrid, LX, LX); // AH - deflection at position of mulitple image in pixels 
+    //   a2 = interp(pgridremap.alpha2grid, xx, yy, ngrid, ngrid, LX, LX); // AH - deflection at position of mulitple image in pixels 
+    //   // k = interp(pgridremap.kappagrid, xx, yy, ngrid, ngrid, LX, LX); // AH - not necessary for imremap v1
+    //   // g1 = interp(pgridremap.gamma1grid, xx, yy, ngrid, ngrid, LX, LX); // AH - not necessary for imremap v1
+    //   // g2 = interp(pgridremap.gamma2grid, xx, yy, ngrid, ngrid, LX, LX); // AH - not necessary for imremap v1
       
-      ys[0] = xx*fctgrid - a1;
-      ys[1] = yy*fctgrid - a2;
+    //   ys[0] = xx*fctgrid - a1; // AH - source plane position in pixels
+    //   ys[1] = yy*fctgrid - a2; // AH - source plane position in pixels
       
-      flux[i] = 1.0 / (sqr(1- k) - (sqr(g1) + sqr(g2)));
-      message("Kappa=%.2f, gamma1=%.2f, gamma2=%.2f",k,g1,g2);
-      message("I %ld a (%6.3f,%6.3f) ys (%6.3f,%6.3f) F %.1f",i, xx+ ll[0], yy+ ll[2], (xx*fctgrid - a1)/fctgrid, (yy*fctgrid - a2)/fctgrid, flux[i]);
-      /*    message("I %ld (%.3f,%.3f) with flux %.3f", i, ximage[i*2+0]-xbcg,  */
-      /* 	    ximage[i*2+1]-ybcg, flux[i]);  */ 
-    }
+    //   // flux[i] = 1.0 / (sqr(1- k) - (sqr(g1) + sqr(g2))); // AH - not necessary for imremap v1
+    //   // message("Kappa=%.2f, gamma1=%.2f, gamma2=%.2f",k,g1,g2); // AH - not necessary for imremap v1
+    //   // message("I %ld a (%6.3f,%6.3f) ys (%6.3f,%6.3f) F %.1f",i, xx+ ll[0], yy+ ll[2], (xx*fctgrid - a1)/fctgrid, (yy*fctgrid - a2)/fctgrid, flux[i]);
+    //   /*    message("I %ld (%.3f,%.3f) with flux %.3f", i, ximage[i*2+0]-xbcg,  */
+    //   /* 	    ximage[i*2+1]-ybcg, flux[i]);  */ 
+    // }
     
     // **********************Calculating chi^2****************************
     
-
+    /* AH - Now remap using source plane positions corresponding to individual images rather than the average */
     message("Remapping original images");
-    nimageold = remap_images(ximageold, fluxold);
+    nimageold = imremap_images(ximageold, fluxold);
     message("Remapping and returning %ld original images", nimageold);
     for (i=0;i<nimageold;i++){
       xx = ximageold[i*2+0];

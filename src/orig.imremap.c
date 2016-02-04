@@ -319,23 +319,33 @@ int main(int argc, char *argv[]) {
     
     // **********************Calculating chi^2****************************
     
-    /* AH - Now remap using source plane positions corresponding to individual images rather than the average */
+    /* AH -
+    imremap_images is similar to imremap_source() except it doesn't attempt 
+    to find new multiple images - it just finds the closest remapped images to 
+    the input multiple image locations. Marusa used it in remap to find an image 
+    plane chi2. If the chi2 was below some very large value (1E8, currently), then
+    the region files with the original and new multiple image locations and mags 
+    are written out. I don't think this is the best way to decide whether the region
+    files are written. For one, it requires calling the solver (time consuming) many more times
+    I think we should write the region files anyway and handle the infs and nans
+    as they arise.
+    */
     message("Remapping original images");
-    nimageold = imremap_images(ximageold, fluxold);
+    nimageold = imremap_images(ximageold, fluxold); // AH - ximageold and fluxold get assigned as the remapped coordinates and fluxes corresponding to images that are close to the inputs
     message("Remapping and returning %ld original images", nimageold);
+    /* AH - Loop through the multiple images that were found by imremap_images() and print out info about them */
     for (i=0;i<nimageold;i++){
       xx = ximageold[i*2+0];
       yy = ximageold[i*2+1];
       a1 = interp(pgridremap.alpha1grid, xx, yy, ngrid, ngrid, LX, LX);
       a2 = interp(pgridremap.alpha2grid, xx, yy, ngrid, ngrid, LX, LX);   
-      k = interp(pgridremap.kappagrid, xx, yy, ngrid, ngrid, LX, LX);
-      g1 = interp(pgridremap.gamma1grid, xx, yy, ngrid, ngrid, LX, LX);
-      g2 = interp(pgridremap.gamma2grid, xx, yy, ngrid, ngrid, LX, LX); 
+      // k = interp(pgridremap.kappagrid, xx, yy, ngrid, ngrid, LX, LX); // AH - not necessary for imremap v1
+      // g1 = interp(pgridremap.gamma1grid, xx, yy, ngrid, ngrid, LX, LX); // AH - not necessary for imremap v1
+      // g2 = interp(pgridremap.gamma2grid, xx, yy, ngrid, ngrid, LX, LX); // AH - not necessary for imremap v1
       
-      
-      flux[i] = 1.0 / (sqr(1- k) - (sqr(g1) + sqr(g2)));
-      message("Kappa=%.2f, gamma1=%.2f, gamma2=%.2f",k,g1,g2);
-      message("I %ld a (%6.3f,%6.3f) ys (%6.3f,%6.3f) F %.1f",i, xx+ ll[0], yy+ ll[2], (xx*fctgrid - a1)/fctgrid, (yy*fctgrid - a2)/fctgrid, flux[i]);
+      // flux[i] = 1.0 / (sqr(1- k) - (sqr(g1) + sqr(g2))); // AH - not necessary for imremap v1
+      // message("Kappa=%.2f, gamma1=%.2f, gamma2=%.2f",k,g1,g2); // AH - not necessary for imremap v1
+      // message("I %ld a (%6.3f,%6.3f) ys (%6.3f,%6.3f) F %.1f",i, xx+ ll[0], yy+ ll[2], (xx*fctgrid - a1)/fctgrid, (yy*fctgrid - a2)/fctgrid, flux[i]);
       /*    message("I %ld (%.3f,%.3f) with flux %.3f", i, ximage[i*2+0]-xbcg,  */
       /* 	    ximage[i*2+1]-ybcg, flux[i]);  */ 
       slgalaxymatch[(pimages.ncur*NIM + i)].ximage =  ximageold[i*2+0]+ll[0];

@@ -1,9 +1,6 @@
 # In remap.c, the slgalaxy structure contains all the information about all input multiple images (see swunitedamr.h)
 # In remap.c, the pimages structure contains the information about how many multiple image systems and images/system, redshifts (see swunitedamr.h)
 
-
-# We will probably want to keep the interp() function. It is currently in gauss.c, but can just be moved to where as it does not 
-
+# We will probably want to keep the interp() function as it is. It is currently in gauss.c, but can just be moved to where as it does not 
 
 # What is the following nz loop in imremap.c for?
-# for (nz = 0; nz < nztot; nz++){   

@@ -239,7 +239,7 @@ long imremap_source(double ximage[], double flux[]){
 }
 
 long imremap_images(double ximage[], double flux[]){
-
+  // Probably not going to use this function in imremap, but keep it for now.
   double xmod[2], lens[3], el, dx;
   double flux1, delta;
   long nim, success, nimage, imax, nimmax;
@@ -271,7 +271,7 @@ long imremap_images(double ximage[], double flux[]){
     message("Trying to remap %.3f %.3f", xmod[0],   xmod[1]); 
     newton_remap(xmod, &success);
     /*solutions at the edge of the field are no good*/
-    message("Remaped to %.3f %.3f (%ld)", xmod[0],   xmod[1], success); 
+    message("Remapped to %.3f %.3f (%ld)", xmod[0],   xmod[1], success); 
   /*   if (success == 1){ */
       lens[0] = interp(lens_grid.kappa, xmod[0], xmod[1], lens_grid.nedge, lens_grid.nedge, LX, LX);
       lens[1] = interp(lens_grid.gamma1, xmod[0], xmod[1], lens_grid.nedge, lens_grid.nedge, LX, LX);

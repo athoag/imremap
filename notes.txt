@@ -4,3 +4,4 @@
 # We will probably want to keep the interp() function as it is. It is currently in gauss.c, but can just be moved to where as it does not 
 
 # What is the following nz loop in imremap.c for?
+# for (nz = 0; nz < nztot; nz++){   

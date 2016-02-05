@@ -1,9 +1,24 @@
 // ANY HEADER FILES NEED TO GO HERE
 #include "utils.h"
+#include "imremap_source.h"
 
 // FUNCTION DEFINITIONS
 
-void readin_stronglensing(double *theta, char *imagenames char *slfilename){
+
+// Allocate memory for an image system of some number of images
+struct SLSys * allocate_SLSys(int nimage) {
+	/* Space is allocated for the system */
+	struct SLSys *system_pointer =
+		(struct SLSys *) malloc(sizeof(struct SLSys) + 
+								sizeof(struct SLImage) * nimage);
+
+	system_pointer->nimage = nimage;
+ 
+	return system_pointer;
+
+}
+
+void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
   /* 
     read in strong lensing catalog named slfilename 
     and assign the image location theta

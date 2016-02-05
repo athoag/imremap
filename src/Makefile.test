@@ -2,7 +2,7 @@
 CC=gcc
 BIN = imremap
 
-MODULES=
+MODULES=utils imremap_source
 
 SOURCES=$(MODULES:%=%.c)
 OBJS=$(MODULES:%=%.o)

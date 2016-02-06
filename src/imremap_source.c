@@ -5,18 +5,33 @@
 // FUNCTION DEFINITIONS
 
 
-// Allocate memory for an image system of some number of images
-struct SLSys * allocate_SLSys(int nimage) {
+// Allocate memory for an image system of some number of images &
+// return the pointer to it
+SLSys * allocate_SLSys(int nimage) {
 	/* Space is allocated for the system */
-	struct SLSys *system_pointer =
-		(struct SLSys *) malloc(sizeof(struct SLSys) + 
-								sizeof(struct SLImage) * nimage);
+	SLSys *system_pointer =
+		(SLSys *) malloc(sizeof(SLSys) + 
+								sizeof(SLImage) * nimage);
 
-	system_pointer->nimage = nimage;
- 
+	
+	
+	int i;
+	for (i=0;i<nimage;i++){
+		(system_pointer->images[i]).tag = malloc(sizeof(char) * 10);
+	}
+	
+ 	system_pointer->nimage = nimage;
 	return system_pointer;
 
 }
+
+void free_SLSys(SLSys sys){
+	int i;
+	for (i=0;i<sys.nimage;i++){
+// 		free(&sys.images[i].tag);
+	}
+}
+
 
 void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
   /* 

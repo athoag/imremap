@@ -10,26 +10,44 @@
 SLSys * allocate_SLSys(int nimage) {
 	/* Space is allocated for the system */
 	SLSys *system_pointer =
-		(SLSys *) malloc(sizeof(SLSys) + 
-								sizeof(SLImage) * nimage);
+		(SLSys *) malloc(sizeof(SLSys));
 
+	system_pointer->nimage = nimage;
+	system_pointer->tag = malloc(nimage * sizeof(char*));
+
+	system_pointer->alpha = (double *)malloc(nimage);
+	system_pointer->delta = (double *)malloc(nimage);
+	system_pointer->alpha_err = (double *)malloc(nimage);
+	system_pointer->delta_err = (double *)malloc(nimage);
+	system_pointer->flux = (double *)malloc(nimage);
 	
 	
 	int i;
 	for (i=0;i<nimage;i++){
-		(system_pointer->images[i]).tag = malloc(sizeof(char) * 10);
+		system_pointer->tag[i] = (char *)malloc(11);
 	}
 	
- 	system_pointer->nimage = nimage;
+ 		
 	return system_pointer;
 
 }
 
-void free_SLSys(SLSys sys){
+void free_SLSys(SLSys * sys){
 	int i;
-	for (i=0;i<sys.nimage;i++){
-// 		free(&sys.images[i].tag);
-	}
+	
+	printf("address of sys->alpha = %p\n", (void *)(sys->alpha));
+	printf("address of sys->delta = %p\n", (void *)(sys->delta));
+	printf("address of sys->alpha_err = %p\n", (void *)(sys->alpha_err));
+	printf("address of sys->delta_err = %p\n", (void *)(sys->delta_err));
+	printf("address of sys->flux = %p\n", (void *)(sys->flux));
+	
+	free(sys->alpha);
+	free(sys->delta);
+	free(sys->alpha_err);
+	free(sys->delta_err);
+	free(sys->flux); 	
+	free(sys->tag);
+	
 }
 
 

@@ -13,7 +13,7 @@ LDFLAGS=-L. -L/opt/local/lib -L/usr/lib
 
 LIBS =-lm
 
-CFLAGS = $(INCS) -Wall -Wstrict-prototypes -O3 
+CFLAGS = $(INCS) -Wall -Wstrict-prototypes -O3
 
 all: $(BIN)
 

@@ -49,7 +49,10 @@ int main(int argc, char *argv[]) {
 	free_SLSys(&sys);
 	printf("This has compiled and now runs!\n\n");
 	
-
+	double *theta={0,0};
+	char *imagenames = "yo";
+	char *slfilename = "/Users/bcain/analysis_code/github/imremap/stronglensing_example.cat";
+	readin_stronglensing(theta,imagenames,slfilename);
 
 
 	return 0;

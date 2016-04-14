@@ -2,7 +2,7 @@
 CC=gcc
 BIN = imremap
 
-MODULES=utils imremap_source
+MODULES=utils stdmsg imremap_source
 
 SOURCES=$(MODULES:%=%.c)
 OBJS=$(MODULES:%=%.o)
@@ -13,7 +13,7 @@ LDFLAGS=-L. -L/opt/local/lib -L/usr/lib
 
 LIBS =-lm
 
-CFLAGS = $(INCS) -Wall -Wstrict-prototypes -O3
+CFLAGS = $(INCS) -Wall -Wstrict-prototypes -O3 -v
 
 all: $(BIN)
 

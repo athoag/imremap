@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/*max number of images in a system*/
+#define NMAXIMG 10
+
 typedef struct {
 	int nimage; 		// The number of images in the system
 	double z_sys; 	// The redshift of the system
@@ -15,5 +18,5 @@ typedef struct {
 	
 } SLSys ;
 
-SLSys* allocate_SLSys(int nimage); 
-void free_SLSys(SLSys* sys);	
+SLSys* allocate_SLSys();
+void free_SLSys(SLSys* sys);

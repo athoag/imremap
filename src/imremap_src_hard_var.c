@@ -1,5 +1,6 @@
 // ANY HEADER FILES NEED TO GO HERE
 #include "utils.h"
+#include "stdmsg.h"
 #include "imremap_source.h"
 
 // FUNCTION DEFINITIONS
@@ -7,24 +8,20 @@
 
 // Allocate memory for an image system of some number of images &
 // return the pointer to it
-SLSys * allocate_SLSys(int nimage) {
+SLSys * allocate_SLSys() {
 	/* Space is allocated for the system */
-	SLSys *system_pointer =	(SLSys *) malloc(sizeof(SLSys));
+	SLSys * system_pointer;
+	if ((system_pointer = ((SLSys *)malloc(NMAXIMG*(sizeof(SLSys))))) == NULL)
+    	error("allocate_SLSys", "out of memory for SLSys");
 
-	system_pointer->nimage = nimage;
-	system_pointer->tag = malloc(nimage * sizeof(char*));
+	system_pointer->tag = malloc(NMAXIMG * sizeof(char*));
 
-	system_pointer->alpha = (double *)malloc(nimage);
-	system_pointer->delta = (double *)malloc(nimage);
-	system_pointer->alpha_err = (double *)malloc(nimage);
-	system_pointer->delta_err = (double *)malloc(nimage);
-	system_pointer->flux = (double *)malloc(nimage);
-	
-	int i;
-	for (i=0;i<nimage;i++){
-		system_pointer->tag[i] = (char *)malloc(11);
-	}
-	
+	system_pointer->alpha = (double *)malloc(NMAXIMG);
+	system_pointer->delta = (double *)malloc(NMAXIMG);
+	system_pointer->alpha_err = (double *)malloc(NMAXIMG);
+	system_pointer->delta_err = (double *)malloc(NMAXIMG);
+	system_pointer->flux = (double *)malloc(NMAXIMG);
+		
 	return system_pointer;
 
 }
@@ -136,18 +133,13 @@ void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
 	printf("%s\n",tags[1]);
 	
 	for (i=0; i<nimages; i++){
+		
 	}
-		
-		
-		
-
-	    
-    
 
     fclose(fp);
-    if (line)
-        free(line);
-}
+    if (line) free(line);
+	}
+
 }
 
 void scrape_header(char *alpha_fitsfile) {
@@ -160,7 +152,6 @@ void scrape_header(char *alpha_fitsfile) {
     double pixscale_deg, pixscale_arcmin; // pixel scale in degrees is the CD2_2 value in the fits header, but we use relative arcminutes elsewhere
     pixscale_arcmin = pixscale_deg*60;
 }
-
 
 void src_from_img(double *beta, double *theta, 
 				  double *alpha_grid, char *alpha_fitsfile){
@@ -175,3 +166,5 @@ void src_from_img(double *beta, double *theta,
 	// Interpolate the deflection (alpha) to the image position
 	
 }
+
+

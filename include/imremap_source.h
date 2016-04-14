@@ -1,8 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /*max number of images in a system*/
 #define NMAXIMG 10
+
+#define TAGSIZE 11
 
 typedef struct {
 	int nimage; 		// The number of images in the system

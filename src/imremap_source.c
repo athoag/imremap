@@ -22,7 +22,7 @@ SLSys * allocate_SLSys(int nimage) {
 	
 	int i;
 	for (i=0;i<nimage;i++){
-		system_pointer->tag[i] = (char *)malloc(11);
+		system_pointer->tag[i] = (char *)malloc(TAGSIZE);
 	}
 	
 	return system_pointer;
@@ -47,23 +47,24 @@ void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
     and assign the image location theta
     and multiple image ids corresponding the the locations
   */
-  
-	FILE * fp;
-	char * line = NULL;
+
+
 	size_t len = 0;
     ssize_t read;
-    
-    char * entry;
-    char * delim = " \t";
+
+	char *line = NULL;    
+    const char * delim = " \t";
+	char *entry;
     
     int nfields = 8;
     int i;
 
-    fp = fopen(slfilename, "r");
+    FILE * fp = fopen(slfilename, "r");
     if (fp == NULL)
         printf("readin_stronglensing","Bad file input");
 
-	// count the number of entries
+
+// 	count the number of entries
 	int nimages=0;
 	while ((read = getline(&line, &len, fp)) != -1) {
     	if (line[0] != "#"){ // Skip commented lines...
@@ -71,7 +72,7 @@ void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
 		}
 	}	
 	
-	
+
 	fseek(fp, 0, SEEK_SET); // reset to the start of the file
 	
 	double alphas[nimages];
@@ -79,75 +80,69 @@ void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
 	double alpha_errs[nimages];
 	double delta_errs[nimages];
 	double fluxes[nimages];
-	char * tags[nimages];
+	char tags[nimages][TAGSIZE];
 	
 	double redshifts[nimages];
 	double redshift_errs[nimages];
 	
 	int j=0; // counter for the uncommented entries
 	
-    while ((read = getline(&line, &len, fp)) != -1) {
+    while ((read = getline(&line, &len, fp)) > 0) {
     	if (line[0] != "#"){ // Skip commented lines...
     		
-// 			printf("Retrieved line of length %zu :\n", read);
+			printf("Retrieved line of length %zu :\n", read);
 			i=0;
-			entry = strsep(line,delim);
-			if(entry !=""){
-			switch(i){
-				case 0:
-					// save the image tag
-					tags[j]=entry;
-					printf("%s\n",entry);
-				case 1:
-					// save the RA
-					alphas[j]=atof(entry);
-				case 2:
-					// save the Dec
-					deltas[j]=atof(entry);
-				case 3:
-					// save the RA error
-					alpha_errs[j]=atof(entry);
-				case 4:
-					// save the Dec error
-					delta_errs[j]=atof(entry);
-				case 5:
-					// save the flux/mag
-					fluxes[j]=atof(entry);
-				case 6:
-					// save the system redshift
-					redshifts[j]=atof(entry);
-				case 7:
-					// save the system redshift error
-					redshift_errs[j]=atof(entry);
-				i++;
-				entry=strsep(NULL,delim); // move to the next token
+			printf("%s\n",line);
+			
+			while ((entry = strsep(&line,delim)) != NULL){
+				printf("entry len = %d\n",strlen(entry));
+				printf("%s\n",entry);
+				
+				if(strlen(entry) > 0){
+					printf("i = %\d\n",i);
+					switch(i){
+						case 0:
+							// save the image tag
+							strcpy(tags[j],entry);
+							break;
+						case 1:
+							// save the RA
+							alphas[j]=atof(entry);
+							break;
+						case 2:
+							// save the Dec
+							deltas[j]=atof(entry);
+							break;
+						case 3:
+							// save the RA error
+							alpha_errs[j]=atof(entry);
+							break;
+						case 4:
+							// save the Dec error
+							delta_errs[j]=atof(entry);
+							break;
+						case 5:
+							// save the flux/mag
+							fluxes[j]=atof(entry);
+							break;
+						case 6:
+							// save the system redshift
+							redshifts[j]=atof(entry);
+							break;
+						case 7:
+							// save the system redshift error
+							redshift_errs[j]=atof(entry);
+							break;
+					}
+					i++;
+				}
 			}
-			j++;
 		}
-    }
-    
-    // Now count the systems, assuming the tag format "SYSTEM.IMAGE"
-	int n_sys=1; // at the least
-	int last_checked=0;
-	char* curr_sys_tag;
-	char* test_sys_tag;
-
-	sscanf(tags[0],"%s.%s",curr_sys_tag,NULL);
-	printf("%s\n",tags[1]);
-	
-	for (i=0; i<nimages; i++){
+		j++;
 	}
-		
-		
-		
-
-	    
-    
-
-    fclose(fp);
-    if (line)
-        free(line);
-}
+	
+	
+	fclose(fp);
 }
 
 void scrape_header(char *alpha_fitsfile) {

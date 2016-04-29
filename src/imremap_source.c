@@ -41,7 +41,7 @@ void free_SLSys(SLSys * sys){
 }
 
 
-void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
+void readin_stronglensing(char *slfilename){
   /* 
     read in strong lensing catalog named slfilename 
     and assign the image location theta
@@ -56,12 +56,11 @@ void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
     const char * delim = " \t";
 	char *entry;
     
-    int nfields = 8;
     int i;
 
     FILE * fp = fopen(slfilename, "r");
     if (fp == NULL)
-        printf("readin_stronglensing","Bad file input");
+        printf("readin_stronglensing -- Bad file input");
 
 
 // 	count the number of entries
@@ -90,16 +89,16 @@ void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
     while ((read = getline(&line, &len, fp)) > 0) {
     	if (line[0] != "#"){ // Skip commented lines...
     		
-			printf("Retrieved line of length %zu :\n", read);
+// 			printf("Retrieved line of length %zu :\n", read);
 			i=0;
-			printf("%s\n",line);
+// 			printf("%s\n",line);
 			
 			while ((entry = strsep(&line,delim)) != NULL){
-				printf("entry len = %d\n",strlen(entry));
-				printf("%s\n",entry);
+// 				printf("entry len = %d\n",strlen(entry));
+// 				printf("%s\n",entry);
 				
 				if(strlen(entry) > 0){
-					printf("i = %\d\n",i);
+// 					printf("i = %\d\n",i);
 					switch(i){
 						case 0:
 							// save the image tag
@@ -141,32 +140,85 @@ void readin_stronglensing(double *theta, char *imagenames, char *slfilename){
 		j++;
 	}
 	
+	for (i=0; i<nimages; i++){
+		printf("i = %d\n",i);
+		printf("tag = %s\n",tags[i]);
+		printf("a d = %f %f\n",alphas[i],deltas[i]);
+		printf("z = %f\n\n",redshifts[i]);
+	}
+	
+	// Now the data has been read in - need to determine how many images in 
+	// each system.
+	int nimg_in_sys[nimages]; // place to hold the number of images, more than 
+							  // needed
+	int nsys = 0;
+	int nimg = 0;
+	char* old_sys_tag="yarglplargle";
+	char tmp_tag[10];
+	char* new_sys_tag;
+	const char * sys_img_delim = ".";
+	char * tmp_tag_p;
+
+/*
+	Loop through all the images.  Check the system tag. If it matches the 
+	system for the previous image, increment the number of images in the system.
+	
+	If not, log the number of images in the previous system and reset the 
+	counter, increment the number of systems, and reset the comparison sys tag
+
+*/
+	
+	for (i=0; i<nimages; i++){
+		printf("hi\n\n");
+		// Copy the next tag, split off the system tag for comparison
+		strcpy(tmp_tag,tags[i]);
+		tmp_tag_p = tmp_tag;
+		new_sys_tag = strsep(&tmp_tag_p,sys_img_delim);
+		
+		printf("img %d sys %s nsys %d\n", i, new_sys_tag, nsys);
+		
+		// If the tags don't match
+		if (strcmp(new_sys_tag,old_sys_tag) != 0){
+			nimg_in_sys[i] = nimg; // log the number of of images
+			nsys++; // increment the number of systems
+			nimg = 0; // reset the counter
+			strcpy(old_sys_tag,new_sys_tag); // reset the current system tag
+
+		// Otherwise
+		}else{
+			nimg++;		
+		}
+		
+		printf("img %d sys %s nsys %d\n", i, new_sys_tag,nsys);
+	}
+	
+	
 	
 	fclose(fp);
 }
 
-void scrape_header(char *alpha_fitsfile) {
-  /* 
-    Get values from alpha fits file header such as 
-    the grid size (ngrid) and the pixel scale (pixscale_arcsec)
-  */
-
-    double ngrid; // size of grid in pixels scraped directly from header
-    double pixscale_deg, pixscale_arcmin; // pixel scale in degrees is the CD2_2 value in the fits header, but we use relative arcminutes elsewhere
-    pixscale_arcmin = pixscale_deg*60;
-}
-
-
-void src_from_img(double *beta, double *theta, 
-				  double *alpha_grid, char *alpha_fitsfile){
-
-	/* 
-		Interpolate alpha to get the value at the image location theta. 
-		Then do the simple conversion and return the 2 element array.
-	*/
-	
-	double beta_pix[2]; // for the source position in relative arcmin
-	
-	// Interpolate the deflection (alpha) to the image position
-	
-}
+// void scrape_header(char *alpha_fitsfile) {
+//   /* 
+//     Get values from alpha fits file header such as 
+//     the grid size (ngrid) and the pixel scale (pixscale_arcsec)
+//   */
+// 
+//     double ngrid; // size of grid in pixels scraped directly from header
+//     double pixscale_deg, pixscale_arcmin; // pixel scale in degrees is the CD2_2 value in the fits header, but we use relative arcminutes elsewhere
+//     pixscale_arcmin = pixscale_deg*60;
+// }
+// 
+// 
+// void src_from_img(double *beta, double *theta, 
+// 				  double *alpha_grid, char *alpha_fitsfile){
+// 
+// 	/* 
+// 		Interpolate alpha to get the value at the image location theta. 
+// 		Then do the simple conversion and return the 2 element array.
+// 	*/
+// 	
+// 	double beta_pix[2]; // for the source position in relative arcmin
+// 	
+// 	// Interpolate the deflection (alpha) to the image position
+// 	
+// }

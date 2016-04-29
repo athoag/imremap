@@ -23,3 +23,5 @@ typedef struct {
 
 SLSys* allocate_SLSys();
 void free_SLSys(SLSys* sys);
+
+void readin_stronglensing(char *slfilename);

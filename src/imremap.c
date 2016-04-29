@@ -51,11 +51,11 @@ int main(int argc, char *argv[]) {
 
 
 
-	double *theta={0,0};
-	char *imagenames = "yo";
+// 	double *theta={0,0};
+// 	char *imagenames = "yo";
 	char *slfilename = "/Users/bcain/analysis_code/github/imremap/stronglensing_example.cat";
 
-	readin_stronglensing(theta,imagenames,slfilename);
+	readin_stronglensing(slfilename);
 
 
 	return 0;

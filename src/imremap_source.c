@@ -153,7 +153,7 @@ void readin_stronglensing(char *slfilename){
 							  // needed
 	for (i=0; i<nimages; i++) nimg_in_sys[i]=0;
 	int nsys = -1; // Number of systems
-	char* old_sys_tag="yarglplargle";
+	char old_sys_tag[]="yarglplargle";
 	char tmp_tag[10];
 	char* new_sys_tag;
 	const char * sys_img_delim = ".";

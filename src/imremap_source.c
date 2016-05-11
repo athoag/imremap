@@ -153,9 +153,17 @@ void readin_stronglensing(char *slfilename){
 							  // needed
 	for (i=0; i<nimages; i++) nimg_in_sys[i]=0;
 	int nsys = -1; // Number of systems
+<<<<<<< Updated upstream
 	char old_sys_tag[]="yarglplargle";
+=======
+<<<<<<< HEAD
+	char * old_sys_tag="yarglplargle";
+=======
+	char old_sys_tag[]="yarglplargle";
+>>>>>>> origin/master
+>>>>>>> Stashed changes
 	char tmp_tag[10];
-	char* new_sys_tag;
+	char * new_sys_tag;
 	const char * sys_img_delim = ".";
 	char * tmp_tag_p;
 
@@ -170,8 +178,8 @@ void readin_stronglensing(char *slfilename){
 	
 	for (i=0; i<nimages; i++){
 		// Copy the next tag, split off the system tag for comparison
-		strcpy(tmp_tag,tags[i]);
-		tmp_tag_p = tmp_tag;
+		strcpy(&tmp_tag,tags[i]);
+		tmp_tag_p = &tmp_tag;
 		new_sys_tag = strsep(&tmp_tag_p,sys_img_delim);
 		
 		printf("tag under evaluation: %s\n",new_sys_tag);
@@ -183,14 +191,17 @@ void readin_stronglensing(char *slfilename){
 			nsys++; // increment the number of systems
 			nimg_in_sys[nsys]=1; // At least one image in this system
 			strcpy(&old_sys_tag,&new_sys_tag); // reset the current system tag
+			printf("ptr old_sys_tag %p\n",old_sys_tag);
+			printf("ptr new_sys_tag %p\n",new_sys_tag);
 
-		// Otherwise
+		// And if they do match
 		}else{
 			printf("Tags match!\n");
-			nimg_in_sys[nsys] = nimg_in_sys[nsys] +1;
+			nimg_in_sys[nsys] = nimg_in_sys[nsys] + 1;
 			
 		}
-		printf("img %d sys_tag %s nsys %d nimg_in_sys %d \n\n", i, new_sys_tag, nsys,nimg_in_sys[nsys]);
+		printf("img %d sys_tag %s nsys %d nimg_in_sys %d \n\n", 
+			    i, new_sys_tag, nsys, nimg_in_sys[nsys]);
 	}
 	
 	

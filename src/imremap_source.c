@@ -12,17 +12,16 @@ SLSys * allocate_SLSys(int nimage) {
 	SLSys *system_pointer =	(SLSys *) malloc(sizeof(SLSys));
 
 	system_pointer->nimage = nimage;
-	system_pointer->tag = malloc(nimage * sizeof(char*));
+	
+	system_pointer->sys_tag = (char *)malloc(TAGSIZE);
+	system_pointer->img_tag = malloc(nimage * sizeof(char*));
 
-	system_pointer->alpha = (double *)malloc(nimage);
-	system_pointer->delta = (double *)malloc(nimage);
-	system_pointer->alpha_err = (double *)malloc(nimage);
-	system_pointer->delta_err = (double *)malloc(nimage);
-	system_pointer->flux = (double *)malloc(nimage);
+	system_pointer->xpos = (double *)malloc(nimage);
+	system_pointer->ypos = (double *)malloc(nimage);
 	
 	int i;
 	for (i=0;i<nimage;i++){
-		system_pointer->tag[i] = (char *)malloc(TAGSIZE);
+		system_pointer->img_tag[i] = (char *)malloc(TAGSIZE);
 	}
 	
 	return system_pointer;
@@ -31,12 +30,9 @@ SLSys * allocate_SLSys(int nimage) {
 
 void free_SLSys(SLSys * sys){
 
-	free(sys->alpha);
-	free(sys->delta);
-	free(sys->alpha_err);
-	free(sys->delta_err);
-	free(sys->flux); 	
-	free(sys->tag);
+	free(sys->xpos);
+	free(sys->ypos);
+	free(sys->img_tag);
 	
 }
 
@@ -53,7 +49,7 @@ void readin_stronglensing(char *slfilename){
     ssize_t read;
 
 	char *line = NULL;    
-    const char * delim = " \t";
+    const char * delim = " \t,";
 	char *entry;
     
     int i;
@@ -74,63 +70,40 @@ void readin_stronglensing(char *slfilename){
 
 	fseek(fp, 0, SEEK_SET); // reset to the start of the file
 	
-	double alphas[nimages];
-	double deltas[nimages];
-	double alpha_errs[nimages];
-	double delta_errs[nimages];
-	double fluxes[nimages];
-	char tags[nimages][TAGSIZE];
-	
-	double redshifts[nimages];
-	double redshift_errs[nimages];
-	
+	char all_sys_tags[nimages][TAGSIZE];
+	char all_img_tags[nimages][TAGSIZE];
+	double all_xpos[nimages];
+	double all_ypos[nimages];
+	double all_Z_ratios[nimages];
+
 	int j=0; // counter for the uncommented entries
 	
     while ((read = getline(&line, &len, fp)) > 0) {
-    	if (line[0] != "#"){ // Skip commented lines...
+    	if (line[0] != '#'){ // Skip commented lines...
     		
-// 			printf("Retrieved line of length %zu :\n", read);
 			i=0;
-// 			printf("%s\n",line);
-			
 			while ((entry = strsep(&line,delim)) != NULL){
-// 				printf("entry len = %d\n",strlen(entry));
-// 				printf("%s\n",entry);
-				
 				if(strlen(entry) > 0){
-// 					printf("i = %\d\n",i);
 					switch(i){
 						case 0:
-							// save the image tag
-							strcpy(tags[j],entry);
+							// save the system tag
+							strcpy(all_sys_tags[j],entry);
 							break;
 						case 1:
-							// save the RA
-							alphas[j]=atof(entry);
+							// save the image tag
+							strcpy(all_img_tags[j],entry);
 							break;
 						case 2:
-							// save the Dec
-							deltas[j]=atof(entry);
+							// save the X-position
+							all_xpos[j]=atof(entry);
 							break;
 						case 3:
-							// save the RA error
-							alpha_errs[j]=atof(entry);
+							// save the Y-position
+							all_ypos[j]=atof(entry);
 							break;
 						case 4:
-							// save the Dec error
-							delta_errs[j]=atof(entry);
-							break;
-						case 5:
-							// save the flux/mag
-							fluxes[j]=atof(entry);
-							break;
-						case 6:
-							// save the system redshift
-							redshifts[j]=atof(entry);
-							break;
-						case 7:
-							// save the system redshift error
-							redshift_errs[j]=atof(entry);
+							// save the distance ratio
+							all_Z_ratios[j]=atof(entry);
 							break;
 					}
 					i++;
@@ -142,30 +115,18 @@ void readin_stronglensing(char *slfilename){
 	
 	for (i=0; i<nimages; i++){
 		printf("i = %d\n",i);
-		printf("tag = %s\n",tags[i]);
-		printf("a d = %f %f\n",alphas[i],deltas[i]);
-		printf("z = %f\n\n",redshifts[i]);
+		printf("tag = %s.%s\n",all_sys_tags[i],all_img_tags[i]);
+		printf("z y = %f %f\n",all_xpos[i],all_ypos[i]);
+		printf("Z = %f\n\n",all_Z_ratios[i]);
 	}
 	
 	// Now the data has been read in - need to determine how many images in 
 	// each system.
 	int nimg_in_sys[nimages]; // place to hold the number of images, more than 
 							  // needed
-	for (i=0; i<nimages; i++) nimg_in_sys[i]=0;
-	int nsys = -1; // Number of systems
-<<<<<<< Updated upstream
-	char old_sys_tag[]="yarglplargle";
-=======
-<<<<<<< HEAD
-	char * old_sys_tag="yarglplargle";
-=======
-	char old_sys_tag[]="yarglplargle";
->>>>>>> origin/master
->>>>>>> Stashed changes
-	char tmp_tag[10];
-	char * new_sys_tag;
-	const char * sys_img_delim = ".";
-	char * tmp_tag_p;
+	nimg_in_sys[0]=1;
+	for (i=1; i<nimages; i++) nimg_in_sys[i]=0;
+	int nsys = 0; // Number of systems (at least the first image...)
 
 /*
 	Loop through all the images.  Check the system tag. If it matches the 
@@ -176,35 +137,27 @@ void readin_stronglensing(char *slfilename){
 
 */
 	
-	for (i=0; i<nimages; i++){
-		// Copy the next tag, split off the system tag for comparison
-		strcpy(&tmp_tag,tags[i]);
-		tmp_tag_p = &tmp_tag;
-		new_sys_tag = strsep(&tmp_tag_p,sys_img_delim);
+	for (i=1; i<nimages; i++){
 		
-		printf("tag under evaluation: %s\n",new_sys_tag);
-		printf("previous tag: %s\n",old_sys_tag);
+		printf("tag under evaluation: %s\n",all_sys_tags[i]);
+		printf("previous tag: %s\n",all_sys_tags[i-1]);
 		
 		// If the tags don't match
-		if (strcmp(new_sys_tag,old_sys_tag) != 0){
+		if ( strcmp(all_sys_tags[i],all_sys_tags[i-1]) != 0){
 			printf("No match!\n");
 			nsys++; // increment the number of systems
-			nimg_in_sys[nsys]=1; // At least one image in this system
-			strcpy(&old_sys_tag,&new_sys_tag); // reset the current system tag
-			printf("ptr old_sys_tag %p\n",old_sys_tag);
-			printf("ptr new_sys_tag %p\n",new_sys_tag);
 
 		// And if they do match
 		}else{
 			printf("Tags match!\n");
-			nimg_in_sys[nsys] = nimg_in_sys[nsys] + 1;
-			
 		}
-		printf("img %d sys_tag %s nsys %d nimg_in_sys %d \n\n", 
-			    i, new_sys_tag, nsys, nimg_in_sys[nsys]);
+		// increment the number of images in the current system
+		nimg_in_sys[nsys] = nimg_in_sys[nsys] + 1; 
+		printf("img %d sys_tag %s img_tag %s nsys %d nimg_in_sys %d \n\n", 
+			    i, all_sys_tags[i], all_img_tags[i], nsys, nimg_in_sys[nsys]);
 	}
 	
-	
+	for (i=0; i<nimages; i++) printf("%d img in sys %d\n",nimg_in_sys[i],i);
 	
 	fclose(fp);
 }

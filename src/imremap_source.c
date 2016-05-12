@@ -37,7 +37,7 @@ void free_SLSys(SLSys * sys){
 }
 
 
-void readin_stronglensing(char *slfilename){
+SLSys ** readin_stronglensing(char *slfilename, int * nsys_p){
   /* 
     read in strong lensing catalog named slfilename 
     and assign the image location theta
@@ -62,7 +62,7 @@ void readin_stronglensing(char *slfilename){
 // 	count the number of entries
 	int nimages=0;
 	while ((read = getline(&line, &len, fp)) != -1) {
-    	if (line[0] != "#"){ // Skip commented lines...
+    	if (line[0] != '#'){ // Skip commented lines...
 			nimages++;
 		}
 	}	
@@ -113,12 +113,12 @@ void readin_stronglensing(char *slfilename){
 		j++;
 	}
 	
-	for (i=0; i<nimages; i++){
-		printf("i = %d\n",i);
-		printf("tag = %s.%s\n",all_sys_tags[i],all_img_tags[i]);
-		printf("z y = %f %f\n",all_xpos[i],all_ypos[i]);
-		printf("Z = %f\n\n",all_Z_ratios[i]);
-	}
+// 	for (i=0; i<nimages; i++){
+// 		printf("i = %d\n",i);
+// 		printf("tag = %s.%s\n",all_sys_tags[i],all_img_tags[i]);
+// 		printf("z y = %f %f\n",all_xpos[i],all_ypos[i]);
+// 		printf("Z = %f\n\n",all_Z_ratios[i]);
+// 	}
 	
 	// Now the data has been read in - need to determine how many images in 
 	// each system.
@@ -126,7 +126,7 @@ void readin_stronglensing(char *slfilename){
 							  // needed
 	nimg_in_sys[0]=1;
 	for (i=1; i<nimages; i++) nimg_in_sys[i]=0;
-	int nsys = 0; // Number of systems (at least the first image...)
+	int nsys = 1; // Number of systems (at least the first image...)
 
 /*
 	Loop through all the images.  Check the system tag. If it matches the 
@@ -139,27 +139,74 @@ void readin_stronglensing(char *slfilename){
 	
 	for (i=1; i<nimages; i++){
 		
-		printf("tag under evaluation: %s\n",all_sys_tags[i]);
-		printf("previous tag: %s\n",all_sys_tags[i-1]);
+// 		printf("tag under evaluation: %s\n",all_sys_tags[i]);
+// 		printf("previous tag: %s\n",all_sys_tags[i-1]);
 		
 		// If the tags don't match
 		if ( strcmp(all_sys_tags[i],all_sys_tags[i-1]) != 0){
-			printf("No match!\n");
+// 			printf("No match!\n");
 			nsys++; // increment the number of systems
 
 		// And if they do match
 		}else{
-			printf("Tags match!\n");
+// 			printf("Tags match!\n");
 		}
 		// increment the number of images in the current system
-		nimg_in_sys[nsys] = nimg_in_sys[nsys] + 1; 
-		printf("img %d sys_tag %s img_tag %s nsys %d nimg_in_sys %d \n\n", 
-			    i, all_sys_tags[i], all_img_tags[i], nsys, nimg_in_sys[nsys]);
+		nimg_in_sys[nsys-1] = nimg_in_sys[nsys-1] + 1; 
+// 		printf("img %d sys_tag %s img_tag %s nsys %d nimg_in_sys %d \n\n", 
+// 			    i, all_sys_tags[i], all_img_tags[i], nsys, nimg_in_sys[nsys-1]);
 	}
 	
-	for (i=0; i<nimages; i++) printf("%d img in sys %d\n",nimg_in_sys[i],i);
+	
+// 	for (i=0; i<nimages; i++) printf("%d img in sys %d\n",nimg_in_sys[i],i);
+	
+	// Define the first images for each system in the list
+	int first_imgs[nsys];
+	for (i=0; i<nsys; i++){
+		first_imgs[i] = 0;
+		for (j=0; j<i; j++){
+			first_imgs[i] = first_imgs[i] + nimg_in_sys[j];
+		}
+	}
+
+	// Put data into the structure	
+	SLSys sl_data_array[nsys];
+	for (i=0; i<nsys; i++){
+		// For the full system
+		sl_data_array[i] = *allocate_SLSys(nimg_in_sys[i]);
+		sl_data_array[i].nimage = nimg_in_sys[i];
+		sl_data_array[i].Z_ratio = all_Z_ratios[first_imgs[i]];
+		sl_data_array[i].sys_tag = all_sys_tags[first_imgs[i]];
+		
+		// Now load the individual image data
+		for (j=0; j<nimg_in_sys[i]; j++){
+			sl_data_array[i].xpos[j] = all_xpos[first_imgs[i]+j];
+			sl_data_array[i].ypos[j] = all_ypos[first_imgs[i]+j];
+			sl_data_array[i].img_tag[j] = all_img_tags[first_imgs[i]+j];
+		}
+	}
+	
+// 	printf("Yo\n");
+// 	printf("Image %s.%s \n",sl_data_array[0].sys_tag, sl_data_array[0].img_tag[0]);
+// 	
+// 	for (i=0; i<nsys; i++){
+// 		for (j=0; j<sl_data_array[i].nimage; j++){
+// 			printf("Image %s.%s \n",sl_data_array[i].sys_tag, sl_data_array[i].img_tag[j]);
+// 			printf("x = %g\n",sl_data_array[i].xpos[j]);
+// 			printf("y = %g\n",sl_data_array[i].ypos[j]);
+// 		}
+// 	}
+	
+	
 	
 	fclose(fp);
+	
+	*nsys_p = nsys;
+	
+	SLSys ** out = &sl_data_array;
+	printf("%p returned\n",out);
+	printf("%d\n",out[0]->nimage);
+	return &sl_data_array;
 }
 
 // void scrape_header(char *alpha_fitsfile) {

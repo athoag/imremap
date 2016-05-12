@@ -19,7 +19,7 @@ typedef struct {
 } SLSys ;
 
 
-SLSys* allocate_SLSys();
+SLSys* allocate_SLSys(int nimage);
 void free_SLSys(SLSys* sys);
 
-void readin_stronglensing(char *slfilename);
+SLSys ** readin_stronglensing(char *slfilename, int * nsys_p);

@@ -1,7 +1,5 @@
 // ANY HEADER FILES NEED TO GO HERE
 #include "utils.h"
-#include <string.h>
-// #include <stdio.h>
 #include "imremap_source.h"
 
 // FUNCTION DEFINITIONS
@@ -126,14 +124,6 @@ SLSys ** readin_stronglensing(char *slfilename, int * nsys_p){
 	// each system.
 	int nimg_in_sys[nimages]; // place to hold the number of images, more than 
 							  // needed
-	int nsys = 0;
-	int nimg = 0;
-	double ret;
-	char old_sys_tag[]="y";
-	char tmp_tag[10];
-	char* new_sys_tag;
-	const char * sys_img_delim = ".";
-	char * tmp_tag_p;
 	nimg_in_sys[0]=1;
 	for (i=1; i<nimages; i++) nimg_in_sys[i]=0;
 	int nsys = 1; // Number of systems (at least the first image...)
@@ -146,30 +136,6 @@ SLSys ** readin_stronglensing(char *slfilename, int * nsys_p){
 	counter, increment the number of systems, and reset the comparison sys tag
 
 */
-	// printf("Made it here 1");
-	for (i=0; i<nimages; i++){
-		printf("hi\n\n");
-		// Copy the next tag, split off the system tag for comparison
-		strcpy(tmp_tag,tags[i]);
-		tmp_tag_p = tmp_tag;
-		new_sys_tag = strsep(&tmp_tag_p,sys_img_delim);
-		
-		printf("img %d sys %s nsys %d\n", i, new_sys_tag, nsys);
-
-		// printf("new tag: %s, old tag: %s \n", new_sys_tag, old_sys_tag);
-		// If the tags don't match
-		ret = strcmp(&new_sys_tag,old_sys_tag);
-		// printf("ret = %d\n", ret);
-		if (ret != 0){
-			printf("New system\n");
-			nimg_in_sys[i] = nimg; // log the number of images
-			nsys++; // increment the number of systems
-			nimg = 0; // reset the counter
-			printf("Made it here 1\n");
-			printf("length old_sys_tag=%d\n",strlen(old_sys_tag));
-			printf("length new sys tag=%d\n",strlen(new_sys_tag));
-			strcpy(old_sys_tag,new_sys_tag); // reset the current system tag
-			printf("Made it here 2\n");
 	
 	for (i=1; i<nimages; i++){
 		
@@ -183,8 +149,6 @@ SLSys ** readin_stronglensing(char *slfilename, int * nsys_p){
 
 		// And if they do match
 		}else{
-			printf("Same system as before\n");
-			nimg++;		
 // 			printf("Tags match!\n");
 		}
 		// increment the number of images in the current system

@@ -12,19 +12,22 @@
 
 int main(int argc, char *argv[]) {
 
-	int i,j;
+// 	int i,j;
 
-	char *slfilename = argv[1];
+	char*slfilename = argv[1];
 	int nsys;
 
-	SLSys** data = readin_stronglensing(slfilename, &nsys);
+	SLSys* data;
 	
-	printf("%p caught\n",data);
-	// SLSys* sldata = *sldatap;
-
+	data = readin_stronglensing(slfilename, data, &nsys);
+	
 	printf("Read in %d system(s)\n\n",nsys);
-	printf("%d images in the first system\n",data[0]->nimage);
 
+
+	printf("%d images in the 1st system\n",data[0].nimage);
+	printf("%d images in the 2nd system\n",data[1].nimage);
+	printf("%d images in the 3rd system\n",data[2].nimage);
+	
 // 	for (i=0; i<nsys; i++){
 // 		for (j=0; j<sldata[i].nimage; j++){
 // 			printf("Image %s.%s \n",sldata[i].sys_tag,sldata[i].img_tag[j]);

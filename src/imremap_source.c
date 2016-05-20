@@ -37,7 +37,7 @@ void free_SLSys(SLSys * sys){
 }
 
 
-SLSys ** readin_stronglensing(char *slfilename, int * nsys_p){
+SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys_p){
   /* 
     read in strong lensing catalog named slfilename 
     and assign the image location theta
@@ -170,7 +170,7 @@ SLSys ** readin_stronglensing(char *slfilename, int * nsys_p){
 	}
 
 	// Put data into the structure	
-	SLSys sl_data_array[nsys];
+
 	for (i=0; i<nsys; i++){
 		// For the full system
 		sl_data_array[i] = *allocate_SLSys(nimg_in_sys[i]);
@@ -186,27 +186,12 @@ SLSys ** readin_stronglensing(char *slfilename, int * nsys_p){
 		}
 	}
 	
-// 	printf("Yo\n");
-// 	printf("Image %s.%s \n",sl_data_array[0].sys_tag, sl_data_array[0].img_tag[0]);
-// 	
-// 	for (i=0; i<nsys; i++){
-// 		for (j=0; j<sl_data_array[i].nimage; j++){
-// 			printf("Image %s.%s \n",sl_data_array[i].sys_tag, sl_data_array[i].img_tag[j]);
-// 			printf("x = %g\n",sl_data_array[i].xpos[j]);
-// 			printf("y = %g\n",sl_data_array[i].ypos[j]);
-// 		}
-// 	}
-	
-	
-	
 	fclose(fp);
 	
 	*nsys_p = nsys;
-	
-	SLSys ** out = &sl_data_array;
-	printf("%p returned\n",out);
-	printf("%d\n",out[0]->nimage);
-	return &sl_data_array;
+
+	return sl_data_array;
+
 }
 
 // void scrape_header(char *alpha_fitsfile) {

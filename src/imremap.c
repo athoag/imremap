@@ -14,8 +14,7 @@ int main(int argc, char *argv[]) {
 
 	int i,j;
 
-	char *slfilename = "/Users/bcain/analysis_code/github/imremap/sl_format.dat";
-
+	char *slfilename = argv[1];
 	int nsys;
 
 	SLSys** data = readin_stronglensing(slfilename, &nsys);

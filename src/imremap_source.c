@@ -1,5 +1,7 @@
 // ANY HEADER FILES NEED TO GO HERE
 #include "utils.h"
+#include <string.h>
+// #include <stdio.h>
 #include "imremap_source.h"
 
 // FUNCTION DEFINITIONS
@@ -153,7 +155,8 @@ void readin_stronglensing(char *slfilename){
 							  // needed
 	int nsys = 0;
 	int nimg = 0;
-	char* old_sys_tag="yarglplargle";
+	double ret;
+	char old_sys_tag[]="y";
 	char tmp_tag[10];
 	char* new_sys_tag;
 	const char * sys_img_delim = ".";
@@ -167,7 +170,7 @@ void readin_stronglensing(char *slfilename){
 	counter, increment the number of systems, and reset the comparison sys tag
 
 */
-	
+	// printf("Made it here 1");
 	for (i=0; i<nimages; i++){
 		printf("hi\n\n");
 		// Copy the next tag, split off the system tag for comparison
@@ -176,16 +179,25 @@ void readin_stronglensing(char *slfilename){
 		new_sys_tag = strsep(&tmp_tag_p,sys_img_delim);
 		
 		printf("img %d sys %s nsys %d\n", i, new_sys_tag, nsys);
-		
+
+		// printf("new tag: %s, old tag: %s \n", new_sys_tag, old_sys_tag);
 		// If the tags don't match
-		if (strcmp(new_sys_tag,old_sys_tag) != 0){
-			nimg_in_sys[i] = nimg; // log the number of of images
+		ret = strcmp(&new_sys_tag,old_sys_tag);
+		// printf("ret = %d\n", ret);
+		if (ret != 0){
+			printf("New system\n");
+			nimg_in_sys[i] = nimg; // log the number of images
 			nsys++; // increment the number of systems
 			nimg = 0; // reset the counter
+			printf("Made it here 1\n");
+			printf("length old_sys_tag=%d\n",strlen(old_sys_tag));
+			printf("length new sys tag=%d\n",strlen(new_sys_tag));
 			strcpy(old_sys_tag,new_sys_tag); // reset the current system tag
+			printf("Made it here 2\n");
 
 		// Otherwise
 		}else{
+			printf("Same system as before\n");
 			nimg++;		
 		}
 		

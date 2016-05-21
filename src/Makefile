@@ -7,11 +7,11 @@ MODULES=utils stdmsg imremap_source
 SOURCES=$(MODULES:%=%.c)
 OBJS=$(MODULES:%=%.o)
 
-INCS= -I. -I../include -I/opt/local/include 
+INCS= -I. -I../include -I/opt/local/include -I${HOME}/progs/cfitsio/
 
-LDFLAGS=-L. -L/opt/local/lib -L/usr/lib
+LDFLAGS=-L. -L/opt/local/lib -L/usr/lib -L${HOME}/progs/cfitsio/
 
-LIBS =-lm
+LIBS =-lm -lcfitsio
 
 CFLAGS = $(INCS) -Wall -Wstrict-prototypes -O3 -v
 

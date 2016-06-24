@@ -1,0 +1,260 @@
+/*-------------------------------------------------------------
+ Program to read a GREAT08 fits file
+
+ Uses cfitsio which can be downloaded from
+ http://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html
+
+ Compile with a C compiler (cc for example) (makefile attached)
+
+ To compile:
+ make -f Makefile_Example
+ need to change the paths to point to the directory containing 
+ cfitsio libraries
+
+ To run:
+ ./read_GREAT08_fits $GREAT08DIR/set0001.fit postagestamps.fit
+
+ Author: Thomas Kitching on behalf of GREAT08
+ C fits code questions?  e-mail tdk@astro.ox.ac.uk
+ GREAT08 questions?   e-mail sarah@sarahbridle.net
+
+ http://www.great08challenge.info/
+ 
+-------------------------------------------------------------*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <unistd.h>
+#include "fitsio.h"
+
+void printerror (int);
+
+int main(int argc, char *argv[])
+{
+
+  int i,j,n,x,y,objx,objy,objxi,objyi;
+  int halfwidth,halfheight,xmin,xmax,ymin,ymax,postagesize;
+  int Nobj_x=100,Nobj_y=100,ix,iy,nobj;
+
+  /* fitsio parameters*/
+  int imagesize, *dim; //fits image dimension
+
+  /* fits image*/
+  fitsfile *afptr; /*fitsfile is a C variable defined by cfitsio*/
+  int status = 0;  /*  CFITSIO status value must be initialized to zero  */
+
+  /*postage stamp size*/
+  int  pheight, pwidth;
+
+  /*fits image properties*/
+  int  anaxis, size3d;
+  long anaxes[2] = {1,1}, fpixel[2]={1,1}; //dimensions of the input fitsfile
+  long anaxes_out[3], fpixel_out[3]={1,1,1}; //dimensions of the output fitfile
+  int  bitpix; 
+  
+  /* data array read in from the input fitsfile*/
+  float  *apix; 
+
+  /* postage stamp data*/
+  float **dpix,*array3d;
+
+  /*input image name*/
+  char *imagename;
+
+  if (argc < 3)
+    {
+      printf ("./read_GREAT08_fits <input file name> <output filename>\n");
+      exit(2);
+    }
+
+  /*define postage stamp size*/
+  pwidth=40;
+  pheight=40;
+  halfwidth = pwidth/2;
+  halfheight = pheight/2;
+  postagesize = pwidth*pheight;
+
+  /*create image name*/
+  imagename = (char*)calloc(500,sizeof(char));    
+  strcpy(imagename,argv[1]);
+
+  /* open input image */
+  fits_open_file(&afptr, imagename, READONLY, &status); 
+  printf(" opened %s\n",imagename);
+
+  /* read input image dimensions */
+  fits_get_img_dim(afptr, &anaxis, &status);  
+  fits_get_img_size(afptr, 2, anaxes, &status);
+
+  if (status) {
+    fits_report_error(stderr, status); /* print error message */
+    return(status);
+  }
+  
+  if (anaxis != 2) {
+    printf("Error: images with other than 2 dimensions are not supported\n");
+    exit (2);
+  }
+
+  /*define input image dimensions*/
+  dim = (int*)calloc(2, sizeof(int));
+  dim[0] = (int)anaxes[0]; 
+  dim[1] = (int)anaxes[1];
+  
+  imagesize = dim[0]*dim[1]; //total image size
+  
+  printf(" image dimensions: %d x %d\n",dim[0],dim[1]);
+
+  /* allocate memory for the input image array*/
+  apix = (float*)calloc(imagesize, sizeof(float));
+  if (apix==NULL)
+    {
+      fprintf(stderr," error allocating memory for image\n");
+      exit (1);
+    }
+  
+  /* read input data into image array */
+  if (fits_read_pix(afptr, TFLOAT, fpixel, imagesize, NULL, apix,
+		    NULL, &status) )
+    {
+      printf(" error reading pixel data \n");
+      exit (2);
+    }
+
+  /* close main image file */
+  fits_close_file (afptr,&status);
+  if (status) {
+    fits_report_error(stderr, status); /* print error message */
+    return(status);
+  }
+  printf(" closed fits file %s\n",imagename);
+
+  /*allocate memory for postage stamps of galaxies*/
+  nobj = 10000;
+  dpix = (float**)calloc(nobj, sizeof(float*));
+  if (dpix == NULL)
+    {
+      printf("Memory allocation error for sub-image pointers\n");
+      exit (2);
+    }
+  for (i=0; i<nobj; i++)
+    {
+      dpix[i] = (float*)calloc((pwidth*pheight), sizeof(float));
+      if (dpix[i] == NULL)
+	{
+          printf("Memory allocation error for sub-image \n");
+          exit (2);
+	}
+    }
+
+  /* loop over image array to extract GREAT08 postage stamps*/
+  nobj=0;
+  for (objxi= 0; objxi<Nobj_x; objxi++) {
+    for (objyi= 0; objyi<Nobj_x; objyi++) {
+   
+      objx=(int)(20.+(float)(objxi)*40.);
+      objy=(int)(20.+(float)(objyi)*40.);
+      
+      xmin = objx-halfwidth;
+      xmax = objx+halfwidth;
+      ymin = objy-halfheight;
+      ymax = objy+halfheight;
+ 
+      /*initaliase postage stamp to zero*/
+      for (y=0; y<pheight; y++)
+	{
+	  for (x=0; x<pwidth; x++)
+	    {
+	      i = y*pwidth + x;
+	      dpix[nobj][i]=0.;
+	     }
+	}
+ 
+      /*extract postage stamp for ith galaxy and store in an array dpix[i][*]*/
+      i=0;
+      for (y=ymin; y<ymax; y++)
+	{
+	  for (x=xmin; x<xmax; x++)
+	    {
+	      j = y*dim[0] + x;
+	      dpix[nobj][i] = apix[j];
+	      i++;
+	    }
+	}
+
+      /* Add shape measurement method here, or */
+      /* write postage stamps out to file of your choice format */
+      nobj++;
+      printf(" %d\n",nobj);
+ 
+      }
+  }
+ 
+  /*Example: write out the postage stamps to a fitsfile */
+  /*create output FITS file  */
+  remove(argv[2]); //remove file if it already exists
+  fits_create_file(&afptr, argv[2], &status); 
+  if (status) {
+    fprintf (stderr," error creating output FITS table \n");
+    fits_report_error(stderr, status); /*  print error message  */
+    exit (2);
+  }
+  printf(" opened output file: %s\n",argv[2]);
+
+  /* (-)number of bits per pixel*/
+  bitpix = -32;
+
+  /*define the size of the 3d data cube*/
+  anaxis = 3;
+  anaxes_out[2] = nobj;
+  anaxes_out[0] = pwidth;
+  anaxes_out[1] = pheight;
+  size3d = anaxes_out[0]*anaxes_out[1]*anaxes_out[2];
+  
+  /* Need to fill the 3D data cube correctly*/ 
+  array3d = (float*)calloc(size3d,sizeof(float));
+  for (n=0; n<nobj; n++)
+    {
+      /* write postage stamps into 3D array */
+      for (i=0; i<postagesize; i++)
+	{
+	  j = n*postagesize + i;
+	  array3d[j] = dpix[n][i];
+	}
+    }
+
+  /*first create the image, bits, and dimensionsm, to be filled with data*/
+  fits_create_img(afptr, bitpix, anaxis, anaxes_out, &status);
+  if (status) {
+    fits_report_error(stderr, status); /* print error message */
+    return(status);
+  }
+
+  /*then fill the define image with data from array3d*/
+  if (fits_write_pix(afptr, TFLOAT, fpixel_out, size3d, array3d, &status))
+    {
+      printf(" error reading pixel data \n");
+      exit (2);
+    }
+
+  /* close the fits file */
+  fits_close_file(afptr, &status);
+
+}
+
+/******************************************************************/
+void printerror( int status)
+{
+    /*****************************************************/
+    /* Print out cfitsio error messages and exit program */
+    /*****************************************************/
+
+    if (status)
+    {
+       fits_report_error(stderr, status); /* print error report */
+       exit( status );    /* terminate the program, returning error status */
+    }
+    return;
+}

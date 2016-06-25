@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
 	if (argc<3) {
 		printf("call with imremap $slfilename $alpha1filename\n");
-		exit(0); 
+		exit(2); 
 	}
 
 	char*slfilename = argv[1];

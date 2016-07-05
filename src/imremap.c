@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     // int bitpix, naxis, ii, anynul;
     int imagesize, *dim; //fits image dimension
 	int  anaxis;
-	long anaxes[2] = {1,1} //dimensions of the input fitsfile
+	long anaxes[2] = {1,1}; //dimensions of the input fitsfile
 	long fpixel[2]={1,1}; // starting pixels when reading in -- needed for fits_read_pix function
     /* data array read in from the input fitsfile*/
     float  *alpha1pix; 

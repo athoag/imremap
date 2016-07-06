@@ -1,6 +1,7 @@
 // ANY HEADER FILES NEED TO GO HERE
 #include "utils.h"
 #include "imremap_source.h"
+#include "fitsio.h"
 
 // FUNCTION DEFINITIONS
 
@@ -9,7 +10,7 @@ void read_fits(char *filename, long *dims, float *data) {
     // int bitpix, naxis, ii, anynul;
     int imagesize; //fits image dimension
 	int  anaxis; // Number of axes or dimensions of the fitsfile
-	dims = {1,1}; //dimensions of the input fitsfile
+	// dims = {1,1}; //dimensions of the input fitsfile
 	long fpixel[2]={1,1}; // starting pixels when reading in -- needed for fits_read_pix function
     /* data array read in from the input fitsfile*/
     // int naxis;
@@ -28,10 +29,10 @@ void read_fits(char *filename, long *dims, float *data) {
     // dim[1] = (int)anaxes[1];
 
     imagesize = (int)(dims[0]*dims[1]); //total image size
-
+    // printf("imagesize=%d", imagesize);
     printf(" image dimensions: %d x %d\n",dims[0],dims[1]);
-    fits_close_file(fptr, &status);
-	
+  
+	// printf("status=%d", imagesize);
 	/* allocate memory for the input image array*/
     data = (float*)calloc(imagesize, sizeof(float));
     if (data==NULL)
@@ -42,12 +43,15 @@ void read_fits(char *filename, long *dims, float *data) {
 
     /* read input data into image array called alpha1pix.
        TFLOAT is the data type, fpixel is the first pixel to be read in each dimension. */
+    // printf(" Assigning data ");
     if (fits_read_pix(fptr, TFLOAT, fpixel, imagesize, NULL, data,
             NULL, &status) ) 
     {
       printf(" error reading pixel data \n");
       exit (2);
     }
+    fits_close_file(fptr, &status);
+    // printf(" Assigned data ");
 }
 
 // Allocate memory for an image system of some number of images &

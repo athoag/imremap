@@ -23,7 +23,10 @@ int main(int argc, char *argv[]) {
 	char*slfilename = argv[1];
 	char*alphafilename = argv[2];
 	// Read in alpha fits file 
-    
+	long *dims;
+	float *alphadata;
+    read_fits(alphafilename, dims, alphadata); 
+    printf("Read in alpha file\n");
 
     /* Read in Strong lensing */
 	int nsys;

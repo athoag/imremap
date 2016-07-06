@@ -192,6 +192,8 @@ SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys
 // 		printf("previous tag: %s\n",all_sys_tags[i-1]);
 		
 		// If the tags don't match
+		// printf("all_sys_tags[i],[i-1]=%s,%s\n",all_sys_tags[i],all_sys_tags[i-1]);
+		// printf("strcmp=%d\n",strcmp(&(all_sys_tags[i-1][0]),all_sys_tags[i][0]));
 		if ( strcmp(all_sys_tags[i],all_sys_tags[i-1]) != 0){
 // 			printf("No match!\n");
 			nsys++; // increment the number of systems
@@ -219,14 +221,18 @@ SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys
 	}
 
 	// Put data into the structure	
-
+	SLSys storage[nsys];
+	sl_data_array = storage;
+	printf("Looping through nsys=%d\n",nsys);
 	for (i=0; i<nsys; i++){
 		// For the full system
+
 		sl_data_array[i] = *allocate_SLSys(nimg_in_sys[i]);
+		// printf("Made it here!\n");
 		sl_data_array[i].nimage = nimg_in_sys[i];
 		sl_data_array[i].Z_ratio = all_Z_ratios[first_imgs[i]];
 		sl_data_array[i].sys_tag = all_sys_tags[first_imgs[i]];
-		
+			
 		// Now load the individual image data
 		for (j=0; j<nimg_in_sys[i]; j++){
 			sl_data_array[i].xpos[j] = all_xpos[first_imgs[i]+j];
@@ -238,7 +244,7 @@ SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys
 	fclose(fp);
 	
 	*nsys_p = nsys;
-
+	// printf("End of readin_stronglensing\n");
 	return sl_data_array;
 
 }

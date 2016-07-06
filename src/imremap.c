@@ -33,7 +33,8 @@ int main(int argc, char *argv[]) {
 
 	SLSys* data;
 	// data = readin_stronglensing(slfilename, data, &nsys);
-	printf("Skipping reading in strong lensing catalog for now while I work on fits file\n");	
+	readin_stronglensing(slfilename, data, &nsys);
+	printf("Read in strong lensing catalog\n");	
     // printf("after\n");
 	// printf("made it here!\n");	
 	// printf("Read in %d system(s)\n\n",nsys);

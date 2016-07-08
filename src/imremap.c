@@ -23,12 +23,6 @@ int main(int argc, char *argv[]) {
 	char*slfilename = argv[1];
 	char*alpha1filename = argv[2];
 	char*alpha2filename = argv[3];
-	int dims1[2];
-	int dims2[2];
-	float *alpha1data;
-	float *alpha2data;
-	int nsys;
-	SLSys* system_data_array;
 	
 	// Read in alpha fits file 
     alpha1data = read_fits(alpha1filename, dims1); 

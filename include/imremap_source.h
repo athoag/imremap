@@ -24,4 +24,12 @@ void free_SLSys(SLSys* sys);
 
 SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys_p);
 
-float * read_fits(char *filename, int *dims); 
+float * read_fits(char *filename, int *dims);
+
+// Global Variables
+int dims1[2];
+int dims2[2];
+float *alpha1data;
+float *alpha2data;
+int nsys;
+SLSys* system_data_array;

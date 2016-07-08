@@ -1,7 +1,7 @@
 // ANY HEADER FILES NEED TO GO HERE
-#include "utils.h"
 #include "imremap_source.h"
 #include "fitsio.h"
+#include "utils.h"
 
 // FUNCTION DEFINITIONS
 
@@ -14,7 +14,6 @@ float * read_fits(char *filename, int *dims) {
 
     /* data array read in from the input fitsfile*/
     int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
-    int maxdim = 2;
 
     fits_open_file(&fptr, filename, READONLY, &status);
     printf(" opened %s\n",filename);
@@ -253,28 +252,7 @@ SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys
 
 }
 
-// void scrape_header(char *alpha_fitsfile) {
-//   /* 
-//     Get values from alpha fits file header such as 
-//     the grid size (ngrid) and the pixel scale (pixscale_arcsec)
-//   */
-// 
-//     double ngrid; // size of grid in pixels scraped directly from header
-//     double pixscale_deg, pixscale_arcmin; // pixel scale in degrees is the CD2_2 value in the fits header, but we use relative arcminutes elsewhere
-//     pixscale_arcmin = pixscale_deg*60;
-// }
-// 
-// 
-// void src_from_img(double *beta, double *theta, 
-// 				  double *alpha_grid, char *alpha_fitsfile){
-// 
-// 	/* 
-// 		Interpolate alpha to get the value at the image location theta. 
-// 		Then do the simple conversion and return the 2 element array.
-// 	*/
-// 	
-// 	double beta_pix[2]; // for the source position in relative arcmin
-// 	
-// 	// Interpolate the deflection (alpha) to the image position
-// 	
-// }
+double * calc_src_pos(int system_index){
+	double src_pos[2] = {0,0};
+	return src_pos;
+}

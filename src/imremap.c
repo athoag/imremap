@@ -35,6 +35,9 @@ int main(int argc, char *argv[]) {
 	readin_stronglensing(slfilename, system_data_array, &nsys);
 	printf("Read in strong lensing catalog\n");		
 	
+	// Calculate avg src pos for each system
+	
+	
 	free(alpha1data);
 	free(alpha2data);
 	

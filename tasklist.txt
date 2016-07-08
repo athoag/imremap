@@ -19,3 +19,14 @@
 	### Currently, lenseq_f_remap() uses the average soure plane position as a reference point
 
 # Decide whether we should keep the current method of using imremap_images() in imremap_source.c for deciding whether to write region files
+
+
+
+2016-07-08
+
+Create calc_src_pos function (currently a blank dummy)
+Incorporate changes in lenseq_f_remap to other functions in solver.c
+Connect solver module to the rest of the code
+Create test data - both in our format and in original remap format
+Create output functions in C
+Change the python formatter to be a full wrapper function.

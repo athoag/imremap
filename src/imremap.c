@@ -15,42 +15,32 @@ int main(int argc, char *argv[]) {
 
 // 	int i,j;
 
-	if (argc<3) {
-		printf("call with imremap $slfilename $alpha1filename\n");
+	if (argc<4) {
+		printf("call with imremap $slfilename $alpha1filename $alpha2filename\n");
 		exit(2); 
 	}
 
 	char*slfilename = argv[1];
-	char*alphafilename = argv[2];
+	char*alpha1filename = argv[2];
+	char*alpha2filename = argv[3];
+	long *dims1;
+	long *dims2;
+	float *alpha1data;
+	float *alpha2data;
+
+
 	// Read in alpha fits file 
-	long *dims;
-	float *alphadata;
-    read_fits(alphafilename, dims, alphadata); 
-    printf("Read in alpha file\n");
+    read_fits(alpha1filename, dims1, alpha1data); 
+    read_fits(alpha2filename, dims2, alpha2data); 
+    printf("Read in alpha files\n");
 
     /* Read in Strong lensing */
 	int nsys;
 
-	SLSys* data;
+	SLSys* system_data_array;
 	// data = readin_stronglensing(slfilename, data, &nsys);
-	readin_stronglensing(slfilename, data, &nsys);
+	readin_stronglensing(slfilename, system_data_array, &nsys);
 	printf("Read in strong lensing catalog\n");	
-    // printf("after\n");
-	// printf("made it here!\n");	
-	// printf("Read in %d system(s)\n\n",nsys);
-
-
-	// printf("%d images in the 1st system\n",data[0].nimage);
-	// printf("%d images in the 2nd system\n",data[1].nimage);
-	// printf("%d images in the 3rd system\n",data[2].nimage);
-	
-// 	for (i=0; i<nsys; i++){
-// 		for (j=0; j<sldata[i].nimage; j++){
-// 			printf("Image %s.%s \n",sldata[i].sys_tag,sldata[i].img_tag[j]);
-// 			printf("x = %g\n",sldata[i].xpos[j]);
-// 			printf("y = %g\n",sldata[i].ypos[j]);
-// 		}
-// 	}
 
 	
 	return 0;

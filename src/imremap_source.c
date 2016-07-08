@@ -5,37 +5,35 @@
 
 // FUNCTION DEFINITIONS
 
-void read_fits(char *filename, long *dims, float *data) {
-	fitsfile *fptr;
-    // int bitpix, naxis, ii, anynul;
+float * read_fits(char *filename, int *dims) {
+
+	fitsfile *fptr; // FITS file pointer
     int imagesize; //fits image dimension
 	int  anaxis; // Number of axes or dimensions of the fitsfile
-	// dims = {1,1}; //dimensions of the input fitsfile
-	long fpixel[2]={1,1}; // starting pixels when reading in -- needed for fits_read_pix function
+	long anaxes[2] = {1,1}, fpixel[2]={1,1}; // starting pixels when reading in -- needed for fits_read_pix function
+
     /* data array read in from the input fitsfile*/
-    // int naxis;
     int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
     int maxdim = 2;
-	// int fits_get_img_dim( fitsfile *fptr, int *naxis,  int *status)
 
     fits_open_file(&fptr, filename, READONLY, &status);
     printf(" opened %s\n",filename);
+
     /* read input image dimensions */
-    fits_get_img_dim(fptr, &anaxis, &status);  
-    fits_get_img_size(fptr, 2, dims, &status); 
-    /*define input image dimensions*/
-    // dim = (int*)calloc(2, sizeof(int));
-    // dim[0] = (int)anaxes[0]; 
-    // dim[1] = (int)anaxes[1];
+    fits_get_img_dim(fptr, &anaxis, &status);
+    fits_get_img_size(fptr, 2, anaxes, &status); 
+	/*define input image dimensions*/
+	dims[0] = (int)anaxes[0]; 
+	dims[1] = (int)anaxes[1];
+
+	printf(" image dimensions: %d x %d\n",dims[0],dims[1]);
 
     imagesize = (int)(dims[0]*dims[1]); //total image size
-    // printf("imagesize=%d", imagesize);
-    printf(" image dimensions: %d x %d\n",dims[0],dims[1]);
-  
-	// printf("status=%d", imagesize);
+      
 	/* allocate memory for the input image array*/
-    data = (float*)calloc(imagesize, sizeof(float));
-    if (data==NULL)
+    float *data_ptr = (float*)calloc(imagesize, sizeof(float));
+
+    if (data_ptr==NULL)
     {
       fprintf(stderr," error allocating memory for image\n");
       exit (1);
@@ -44,14 +42,20 @@ void read_fits(char *filename, long *dims, float *data) {
     /* read input data into image array called alpha1pix.
        TFLOAT is the data type, fpixel is the first pixel to be read in each dimension. */
     // printf(" Assigning data ");
-    if (fits_read_pix(fptr, TFLOAT, fpixel, imagesize, NULL, data,
-            NULL, &status) ) 
+    if (fits_read_pix(fptr, TFLOAT, fpixel, imagesize, 
+    				  NULL, data_ptr, NULL, &status) ) 
     {
       printf(" error reading pixel data \n");
       exit (2);
     }
+
+
     fits_close_file(fptr, &status);
-    // printf(" Assigned data ");
+    printf(" closed fits file %s\n",filename);
+	printf(" data_ptr[500] = %f\n",data_ptr[500]);
+	
+	return data_ptr;
+
 }
 
 // Allocate memory for an image system of some number of images &

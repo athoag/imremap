@@ -24,4 +24,4 @@ void free_SLSys(SLSys* sys);
 
 SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys_p);
 
-void read_fits(char *filename, long *dims, float *data); 
+float * read_fits(char *filename, int *dims); 

@@ -21,8 +21,9 @@ int lenseq_f_remap (gsl_vector * xx, void *par, gsl_vector * f)
        gsl_vector_set (f, 0, 1.0E10);
        gsl_vector_set (f, 1, 1.0E10);
        return GSL_ERANGE;
-  }
-  else{
+
+  }else{
+
     /* Get the value of the deflection at the image position on the */
     def1i = interp_pix(alpha1data, x1, x2, dims[0], dims[1]);  
     def2i = interp_pix(alpha2data, x1, x2, dims[0], dims[1]);

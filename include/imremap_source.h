@@ -25,7 +25,7 @@ typedef struct {
 	double * xpos;	// x-axis coordinates
 	double * ypos;	// y-axis coordinates
 	
-	double src_pos[2]; // average source position vector
+	double * src_pos; // average source position vector
 	
 	char * sys_tag;	// String tag for the system
 	char **img_tag; // String tags for the images

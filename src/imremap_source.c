@@ -253,6 +253,17 @@ SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys
 }
 
 double * calc_src_pos(int system_index){
+	// Calculate the average image position and return it as the 
+	// source position.
 	double src_pos[2] = {0,0};
-	return src_pos;
+	int i=0;
+	for (i=0; i<system_data_array[system_index].nimage; i++){
+		src_pos[0] += system_data_array[system_index].xpos[i];
+		src_pos[1] += system_data_array[system_index].ypos[i];
+	}
+	
+	src_pos[0] /=system_data_array[system_index].nimage;
+	src_pos[1] /=system_data_array[system_index].nimage;
+	
+	return &src_pos;
 }

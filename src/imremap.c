@@ -13,7 +13,7 @@
 
 int main(int argc, char *argv[]) {
 
-// 	int i,j;
+	int i;
 
 	if (argc<4) {
 		printf("call with imremap $slfilename $alpha1filename $alpha2filename\n");
@@ -36,7 +36,9 @@ int main(int argc, char *argv[]) {
 	printf("Read in strong lensing catalog\n");		
 	
 	// Calculate avg src pos for each system
-	
+	for (i=0; i<nsys; i++){
+		system_data_array[i].src_pos = calc_src_pos(i);
+	}
 	
 	free(alpha1data);
 	free(alpha2data);

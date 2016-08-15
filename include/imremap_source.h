@@ -36,8 +36,8 @@ typedef struct {
 SLSys* allocate_SLSys(int nimage);
 void free_SLSys(SLSys* sys);
 SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys_p);
-float * read_fits(char *filename, int *dims);
-double * calc_src_pos(int sys_index);
+double * read_fits(char *filename, int *dims);
+void calc_src_pos(int sys_index);
 
 // Functions in solver.c
 int lenseq_f_remap (gsl_vector * xx, void *par, gsl_vector * f);
@@ -52,7 +52,7 @@ long solver(double ximage[], double flux[]); // note BC changed the name of this
 // Global Variables
 int dims1[2];
 int dims2[2];
-float *alpha1data;
-float *alpha2data;
+double *alpha1data;
+double *alpha2data;
 int nsys;
 SLSys* system_data_array;

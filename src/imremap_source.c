@@ -5,7 +5,7 @@
 
 // FUNCTION DEFINITIONS
 
-float * read_fits(char *filename, int *dims) {
+double * read_fits(char *filename, int *dims) {
 
 	fitsfile *fptr; // FITS file pointer
     int imagesize; //fits image dimension
@@ -30,7 +30,7 @@ float * read_fits(char *filename, int *dims) {
     imagesize = (int)(dims[0]*dims[1]); //total image size
       
 	/* allocate memory for the input image array*/
-    float *data_ptr = (float*)calloc(imagesize, sizeof(float));
+    double *data_ptr = (double*)calloc(imagesize, sizeof(double));
 
     if (data_ptr==NULL)
     {
@@ -252,18 +252,29 @@ SLSys * readin_stronglensing(char *slfilename, SLSys * sl_data_array, int * nsys
 
 }
 
-double * calc_src_pos(int system_index){
+void calc_src_pos(int system_index){
 	// Calculate the average image position and return it as the 
 	// source position.
+	printf("yo\n");
+	printf("%d\n",system_data_array[system_index].nimage);
 	double src_pos[2] = {0,0};
 	int i=0;
 	for (i=0; i<system_data_array[system_index].nimage; i++){
-		src_pos[0] += system_data_array[system_index].xpos[i];
-		src_pos[1] += system_data_array[system_index].ypos[i];
+		printf("yo\n");
+		system_data_array[system_index].src_pos[0] += 
+				system_data_array[system_index].xpos[i];
+		printf("yo\n");
+		system_data_array[system_index].src_pos[1] += 
+				system_data_array[system_index].ypos[i];
+				
+		printf("x %f\n",system_data_array[system_index].src_pos[0]);
+		printf("y %d\n",system_data_array[system_index].src_pos[1]);
 	}
 	
-	src_pos[0] /=system_data_array[system_index].nimage;
-	src_pos[1] /=system_data_array[system_index].nimage;
+	system_data_array[system_index].src_pos[0] /=
+			system_data_array[system_index].nimage;
+	system_data_array[system_index].src_pos[0] /=
+			system_data_array[system_index].nimage;
 	
-	return &src_pos;
 }
+

@@ -2,7 +2,7 @@
 CC=gcc
 BIN = imremap
 
-MODULES=utils stdmsg imremap_source
+MODULES=utils stdmsg solver imremap_source
 
 SOURCES=$(MODULES:%=%.c)
 OBJS=$(MODULES:%=%.o)
@@ -11,7 +11,7 @@ INCS= -I. -I../include -I/opt/local/include -I${HOME}/analysis_code/Ureka/python
 
 LDFLAGS=-L. -L/opt/local/lib -L/usr/lib -L${HOME}/analysis_code/Ureka/python/lib
 
-LIBS =-lm -lcfitsio
+LIBS =-lm -lcfitsio -lgsl
 
 CFLAGS = $(INCS) -Wall -Wstrict-prototypes -O3 -v
 

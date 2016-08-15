@@ -78,7 +78,7 @@ void msgseparator(void) {
  */
 void printclocktime(const char *prompt) {
   static clock_t CPUstart = 1, CPUold;
-  static float acc;
+  static double acc;
   clock_t temp;
   
   if (CPUstart == 1) {
@@ -92,13 +92,13 @@ void printclocktime(const char *prompt) {
     temp = clock() - CPUstart;
     if (temp < CPUold) {
 #ifdef __GNUC__
-      acc += 4294967296.0 / (float)CLOCKS_PER_SEC;
+      acc += 4294967296.0 / (double)CLOCKS_PER_SEC;
 #else
-      acc += pow(2.0, sizeof(temp)*8) / (float)CLOCKS_PER_SEC;
+      acc += pow(2.0, sizeof(temp)*8) / (double)CLOCKS_PER_SEC;
 #endif
     }
     teeprintf("%-4s[%07.2f]: ", prompt,
-	      (float)(temp)/(float)CLOCKS_PER_SEC + acc);
+	      (double)(temp)/(double)CLOCKS_PER_SEC + acc);
     CPUold = temp;
   } else teeprintf("%-4s[????.??]: ", prompt);
 }
@@ -317,11 +317,11 @@ char *input(const char *fmt, ...)
  * automatically.  Remember to call the procedure with f >= 1.0 at the
  * end of the task.
  */
-void progressbar(float f)
+void progressbar(double f)
 {
-  static float f0 = -1.0;
+  static double f0 = -1.0;
   static struct timeval t0, t1;
-  float eta;
+  double eta;
   int i, j;
   char line1[MSG_LINE_LENGTH], line2[MSG_LINE_LENGTH], *c;
 
@@ -344,7 +344,7 @@ void progressbar(float f)
       }
       if (gettimeofday(&t1, NULL) == 0) {
 	eta = t1.tv_sec - t0.tv_sec + 
-	  ((float)t1.tv_usec - (float)t0.tv_usec) / 1000000.0;
+	  ((double)t1.tv_usec - (double)t0.tv_usec) / 1000000.0;
 	if (eta < 1e6*(f - f0)) 
 	  fprintf(stderr, "ETA [%07.01f]: ", (1 - f) * eta / (f - f0));
 	else 

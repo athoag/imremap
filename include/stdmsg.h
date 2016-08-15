@@ -25,7 +25,7 @@ void error(const char *proc, const char *fmt, ...)
 #endif
      ;
 void bp(int n);
-void progressbar(float f);
+void progressbar(double f);
 void showcounter(const char *fmt, ...);
 const char* parseErrorStr(const char *line, int pos);
 const char* dateStr(void);
